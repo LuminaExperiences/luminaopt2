@@ -147,7 +147,7 @@ export default function BookingForm() {
           className="mt-1.5"
         />
         <span className="text-sm text-[var(--muted)]">
-          I consent to being photographed and videographed, and acknowledge it is solely Lumina's discretion where those images may be shared.
+          I consent to being photographed and videographed, and acknowledge it is solely Lumina&apos;s discretion where those images may be shared.
         </span>
       </label>
       <label className="flex items-start gap-2.5">
