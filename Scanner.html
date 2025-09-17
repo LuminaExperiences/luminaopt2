@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <title>Ticket Scanner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Include html5-qrcode library for scanner functionality -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        /* Basic styling for the scanner page */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 15px; background-color: #f8f9fa; color: #333; display: flex; flex-direction: column; align-items: center;}
+        h2 { margin-bottom: 20px; color: #555; }
+        #reader-container { position: relative; width: 95%; max-width: 450px; }
+        #reader { border: 2px solid #dee2e6; border-radius: 8px; overflow: hidden; /* Important for camera view */ }
+        #reader__dashboard_section_csr > div > button { margin-top: 10px; } /* Style camera switch button */
+        #result { margin-top: 20px; padding: 12px 15px; border-radius: 5px; font-weight: bold; text-align: center; width: 95%; max-width: 450px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); word-wrap: break-word; }
+        .success { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
+        .error { background-color: #f8d7da; color: #842029; border: 1px solid #f5c2c7; }
+        .warning { background-color: #fff3cd; color: #664d03; border: 1px solid #ffecb5; }
+        .info { background-color: #cff4fc; color: #055160; border: 1px solid #b6effb; }
+        #manualEntry { margin-top: 25px; text-align: center; width: 95%; max-width: 450px; }
+        #manualId { padding: 10px; margin-right: 5px; border: 1px solid #ced4da; border-radius: 4px; width: calc(70% - 10px); }
+        #manualCheckInBtn { padding: 10px 15px; font-size: 1em; cursor: pointer; background-color: #0d6efd; color: white; border: none; border-radius: 4px; transition: background-color 0.2s ease; }
+         #manualCheckInBtn:hover { background-color: #0b5ed7; }
+        #loadingSpinner { display: none; /* Initially hidden */ border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 10px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <h2>Maya Ticket Scanner</h2>
+
+    <!-- Container for the QR Code Reader -->
+    <div id="reader-container">
+      <div id="reader"></div>
+    </div>
+
+    <!-- Display area for scan results -->
+    <div id="result" class="info">Initializing scanner...</div>
+    <div id="loadingSpinner"></div> <!-- Loading indicator -->
+
+    <!-- Manual ID Entry Section -->
+    <div id="manualEntry">
+        <p style="margin-bottom: 8px;">Scan failed? Enter Ticket ID manually:</p>
+        <input type="text" id="manualId" placeholder="e.g., MAYA12345-1">
+        <button id="manualCheckInBtn" onclick="manualCheckIn()">Check In</button>
+    </div>
+
+    <script>
+        const resultDiv = document.getElementById('result');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const manualIdInput = document.getElementById('manualId');
+        const manualCheckInBtn = document.getElementById('manualCheckInBtn');
+
+        let lastScanTime = 0;
+        const scanCooldown = 3500; // 3.5 seconds cooldown to prevent accidental double scans/processing
+        let isProcessing = false; // Flag to prevent multiple submissions
+
+        // Function called on successful QR code scan
+        function onScanSuccess(decodedText, decodedResult) {
+            const now = Date.now();
+            // Ignore if processing another scan or within cooldown period
+            if (isProcessing || (now - lastScanTime < scanCooldown)) {
+                // console.log("Scan ignored (processing or cooldown).");
+                return;
+            }
+            isProcessing = true; // Set processing flag
+            lastScanTime = now;
+
+            console.log(`Scan successful: ${decodedText}`);
+            resultDiv.textContent = `Processing ID: ${decodedText}...`;
+            resultDiv.className = 'info'; // Set status to info/processing
+            loadingSpinner.style.display = 'block'; // Show spinner
+            manualCheckInBtn.disabled = true; // Disable manual button during processing
+
+            // Send the scanned ID to the server-side Apps Script function
+            google.script.run
+                .withSuccessHandler(updateResult)
+                .withFailureHandler(onFailure)
+                .checkInAttendee(decodedText); // Calls the checkInAttendee function in Code.gs
+
+            // Optional: Vibrate on successful scan (if supported by browser/device)
+            if (navigator.vibrate) {
+                navigator.vibrate(150); // Vibrate for 150ms
+            }
+        }
+
+        // Function called if the Apps Script call fails
+        function onFailure(error) {
+            console.error(`Script failure: ${JSON.stringify(error)}`);
+            resultDiv.textContent = `❌ Error: ${error.message || 'Could not communicate with the server. Check connection and script deployment.'}`;
+            resultDiv.className = 'error';
+            resetProcessingState(); // Reset flags/UI
+        }
+
+        // Function called with the result from checkInAttendee
+        function updateResult(response) {
+             console.log('Server Response:', response);
+             resultDiv.textContent = response.message; // Display message from server
+             // Set background color based on status
+             if (response.status === 'success') {
+                 resultDiv.className = 'success';
+             } else if (response.status === 'already_checked_in' || response.status === 'invalid_status') {
+                 resultDiv.className = 'warning';
+             } else { // 'error', 'not_found'
+                 resultDiv.className = 'error';
+             }
+             resetProcessingState(); // Reset flags/UI
+        }
+
+        // Function to reset UI state after processing finishes
+        function resetProcessingState() {
+            isProcessing = false;
+            loadingSpinner.style.display = 'none';
+            manualCheckInBtn.disabled = false;
+            // Set a timer to clear the result message after a few seconds? Optional.
+            // setTimeout(() => {
+            //    if (!isProcessing) { // Only clear if not processing a new scan
+            //       resultDiv.textContent = 'Ready for next scan.';
+            //       resultDiv.className = 'info';
+            //    }
+            // }, 7000); // Clear after 7 seconds
+        }
+
+
+        // --- Initialize the QR Code Scanner ---
+        try {
+             const html5QrcodeScanner = new Html5QrcodeScanner(
+                "reader", // ID of the element to render the scanner in
+                {
+                    fps: 10, // Target scan frames per second
+                    qrbox: (viewfinderWidth, viewfinderHeight) => {
+                         // Calculate responsive QR box size
+                         let minEdgePercentage = 0.7; // 70% of the smaller dimension
+                         let minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+                         let qrboxSize = Math.floor(minEdgeSize * minEdgePercentage);
+                         return { width: qrboxSize, height: qrboxSize };
+                    },
+                    // Use rear camera by default if available
+                    facingMode: "environment",
+                    // Optional: Aspect ratio for the camera preview
+                    // aspectRatio: 1.7777778 // 16:9
+                },
+                /* verbose= */ false // Set to true for more console logs from the library
+             );
+             // Render the scanner and set the success callback
+             html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+             resultDiv.textContent = 'Scanner ready. Point camera at QR code.'; // Update status
+        } catch (initError) {
+             console.error("QR Scanner Initialization Failed:", initError);
+             resultDiv.textContent = '❌ Error initializing scanner. Check camera permissions?';
+             resultDiv.className = 'error';
+        }
+
+
+        // Optional: Handle scan failures (e.g., QR code not recognized)
+        function onScanFailure(error) {
+          // This callback is often noisy, only log if needed for debugging
+          // console.warn(`QR Scan Failure: ${error}`);
+          // You could update the UI briefly, e.g., resultDiv.textContent = 'Could not read QR code...';
+        }
+
+
+        // --- Manual Check-in Function ---
+        function manualCheckIn() {
+            if (isProcessing) return; // Don't allow if already processing
+
+            const ticketId = manualIdInput.value.trim();
+            if (!ticketId) {
+                resultDiv.textContent = '⚠️ Please enter a Ticket ID.';
+                resultDiv.className = 'warning';
+                return;
+            }
+
+            isProcessing = true; // Set flag
+            resultDiv.textContent = `Processing manual ID: ${ticketId}...`;
+            resultDiv.className = 'info';
+            loadingSpinner.style.display = 'block';
+            manualCheckInBtn.disabled = true;
+
+
+            // Call the same server-side function as the QR scan
+            google.script.run
+                .withSuccessHandler(updateResult)
+                .withFailureHandler(onFailure)
+                .checkInAttendee(ticketId);
+
+            manualIdInput.value = ''; // Clear input field after submission
+        }
+
+        // Allow submitting manual entry with Enter key
+        manualIdInput.addEventListener("keypress", function(event) {
+          if (event.key === "Enter") {
+            event.preventDefault(); // Prevent default form submission if it were in a form
+            manualCheckIn();
+          }
+        });
+
+    </script>
+</body>
+</html>
