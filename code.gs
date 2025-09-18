@@ -534,7 +534,7 @@ function sendPendingEmail(toEmail, fullName, numTickets, expectedAmount) {
   // --- !!! CUSTOMIZE YOUR PAYMENT INSTRUCTIONS HERE !!! ---
   const paymentInstructions = `
 If you haven't sent the payment yet, please do so via:
-Zelle: +1 (912) 777-0981
+Zelle: 2063836987
 Amount: $${expectedAmount.toFixed(2)}
 
 IMPORTANT: Please try to include your email (${toEmail}) in the payment memo/note if possible.
@@ -543,7 +543,7 @@ IMPORTANT: Please try to include your email (${toEmail}) in the payment memo/not
 `;
   // --- End Customize ---
   // <<< Update Body Text & Use fullName in greeting >>>
-  const body = `Hi ${fullName},\n\nThank you for requesting ${numTickets} ticket(s) for Khalbali! Expected payment: $${expectedAmount.toFixed(2)}.\n\nWe will verify your payment and get back to you shortly. If approved, you'll get another email with your QR code ticket(s).\n\n${paymentInstructions}\nQuestions? Contact luminauw@gmail.com or +1 (629) 217-4809.\n\nCheers,\nUW Lumina`;
+  const body = `Hi ${fullName},\n\nThank you for requesting ${numTickets} ticket(s) for Khalbali! Expected payment: $${expectedAmount.toFixed(2)}.\n\nWe will verify your payment and get back to you shortly. If approved, you'll get another email with your QR code ticket(s).\n\n${paymentInstructions}\nQuestions? Contact luminaexperiences@gmail.com or +1 (629) 217-4809.\n\nCheers,\nUW Lumina`;
   try { MailApp.sendEmail(toEmail, subject, body); Logger.log(`Pending email sent to ${toEmail}`); }
   catch (error) { Logger.log(`ERROR sending pending email to ${toEmail}: ${error}`); const admin = getAdminEmail(); if(admin) MailApp.sendEmail(admin, 'Error Sending Pending Email', `Failed for ${toEmail}: ${error}`);}
 }
@@ -620,6 +620,88 @@ function doGet(e) {
   } catch (htmlError){
       Logger.log(`ERROR serving Scanner.html: ${htmlError}`);
       return HtmlService.createHtmlOutput("<p>Error loading scanner interface. Please check script logs.</p>");
+  }
+}
+
+/** [WEB APP] Receives JSON submissions from the Next.js site */
+function doPost(e) {
+  try {
++    // Security: validate API key if configured in Script Properties (name: API_KEY)
++    try {
++      const props = PropertiesService.getScriptProperties();
++      const expectedKey = props ? props.getProperty('API_KEY') : null;
++      const providedKey = (e && e.parameter && e.parameter.key) ? String(e.parameter.key) : '';
++      if (expectedKey && expectedKey !== providedKey) {
++        return ContentService.createTextOutput(JSON.stringify({ ok: false, error: 'Unauthorized' })).setMimeType(ContentService.MimeType.JSON);
++      }
++    } catch (secErr) {
++      Logger.log(`Security check error: ${secErr}`);
++    }
+
+    const raw = e && e.postData && e.postData.contents ? e.postData.contents : '{}';
+    const data = JSON.parse(raw);
+
+    let fullName = (data.fullName || '').toString().trim();
+    const payerEmail = (data.payerEmail || '').toString().trim().toLowerCase();
+    let numTickets = parseInt(data.numTickets, 10);
+    if (isNaN(numTickets) || numTickets < 1) numTickets = 1;
+    const attendeeNamesInput = Array.isArray(data.attendeeNames) ? data.attendeeNames.map(String) : [];
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(RESPONSES_SHEET_NAME);
+    const configSheet = ss.getSheetByName(CONFIG_SHEET_NAME);
+    if (!sheet || !configSheet) {
+      return ContentService.createTextOutput(JSON.stringify({ ok: false, error: 'Missing required sheets' })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // Validate required fields
+    if (!fullName || !payerEmail) {
+      return ContentService.createTextOutput(JSON.stringify({ ok: false, error: 'Missing fullName or payerEmail' })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const ticketPrice = getTicketPrice(configSheet);
+    const expectedAmount = numTickets * ticketPrice;
+
+    // Build attendee list and placeholders similar to onFormSubmit
+    let attendees = attendeeNamesInput.map((n) => n.trim()).filter((n) => n.length > 0);
+    if (attendees.length === 0 && numTickets === 1 && fullName !== 'Unknown Name') {
+      attendees.push(fullName);
+    }
+    const namePlaceholders = [];
+    while (attendees.length < numTickets) {
+      const guestNum = namePlaceholders.length + attendees.length + 1;
+      const placeholder = `${fullName} - Guest ${guestNum}`;
+      attendees.push(placeholder);
+      namePlaceholders.push(placeholder);
+    }
+    const finalAttendeeNames = attendees.slice(0, numTickets);
+
+    // Append a new row at the bottom; assume Form default columns A-G, custom H-L
+    const timestamp = new Date();
+    const newRow = [
+      timestamp,                 // A Timestamp
+      fullName,                  // B Full Name
+      payerEmail,                // C Payer Email
+      '',                        // D (Phone optional / not used)
+      numTickets,                // E Num Tickets
+      finalAttendeeNames.join(', '), // F Attendee Names
+      '',                        // G Screenshot (left empty)
+      expectedAmount.toFixed(2), // H Expected Amount
+      STATUS_PENDING,            // I Status
+      '',                        // J Ticket IDs
+      (namePlaceholders.length > 0 ? `Added ${namePlaceholders.length} placeholder guests.` : '').trim(), // K Admin Notes
+      ''                         // L Processed TS
+    ];
+
+    sheet.appendRow(newRow);
+
+    // Send pending email
+    try { sendPendingEmail(payerEmail, fullName, numTickets, expectedAmount); } catch (mailErr) { Logger.log(`Pending email send error: ${mailErr}`); }
+
+    return ContentService.createTextOutput(JSON.stringify({ ok: true, expectedAmount })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    const message = (err && err.message) ? err.message : String(err);
+    return ContentService.createTextOutput(JSON.stringify({ ok: false, error: message })).setMimeType(ContentService.MimeType.JSON);
   }
 }
 

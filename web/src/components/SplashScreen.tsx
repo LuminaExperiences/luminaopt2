@@ -10,19 +10,18 @@ interface SplashScreenProps {
 
 const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [logoError, setLogoError] = useState(false);
 
   useEffect(() => {
-    const timer1 = setTimeout(() => setCurrentStep(1), 3000); // Logo shows for 3s
-    const timer2 = setTimeout(() => setCurrentStep(2), 6000); // Lumina shows for 3s
-    const timer3 = setTimeout(() => setCurrentStep(3), 8000); // Tagline shows for 0.8s
-    const timer4 = setTimeout(() => onComplete(), 8800); // Complete after 8.8s total
+    const t1 = setTimeout(() => setCurrentStep(1), 3000); // Logo shows for 3s
+    const t2 = setTimeout(() => setCurrentStep(2), 6000); // Lumina shows for 3s
+    const t3 = setTimeout(() => setCurrentStep(3), 8000); // Tagline shows for 0.8s
+    const t4 = setTimeout(() => onComplete(), 8800); // Complete after 8.8s total
 
     return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      clearTimeout(timer3);
-      clearTimeout(timer4);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
     };
   }, [onComplete]);
 
@@ -38,27 +37,15 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             transition={{ duration: 1.2 }}
             className="w-full h-full flex items-center justify-center"
           >
-            {!logoError ? (
-              <Image
-                src="/Frame 1.png"
-                alt="Lumina Logo"
-                width={200}
-                height={200}
-                className="object-contain"
-                priority
-                unoptimized
-                onError={() => setLogoError(true)}
-              />
-            ) : (
-              <div className="text-center">
-                <h1
-                  className="text-6xl font-thin text-white tracking-widest"
-                  style={{ fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif' }}
-                >
-                  Lumina
-                </h1>
-              </div>
-            )}
+            <Image
+              src="/Frame 1.png"
+              alt="Lumina Logo"
+              width={200}
+              height={200}
+              className="object-contain"
+              priority
+              unoptimized
+            />
           </motion.div>
         )}
 

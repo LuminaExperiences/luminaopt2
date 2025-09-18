@@ -40,7 +40,11 @@ export async function POST(req: Request) {
       agreeTerms: !!agreeTerms,
     };
 
-    const res = await fetch(APPS_SCRIPT_URL, {
+    const url = APPS_SCRIPT_API_KEY
+      ? `${APPS_SCRIPT_URL}${APPS_SCRIPT_URL.includes('?') ? '&' : '?'}key=${encodeURIComponent(APPS_SCRIPT_API_KEY)}`
+      : APPS_SCRIPT_URL;
+
+    const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

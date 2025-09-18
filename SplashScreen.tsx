@@ -38,7 +38,8 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             className="w-full h-full flex items-center justify-center"
           >
             <Image
-               src="/Frame 1.png"
+-               src="/Frame 1.png"
++               src="/lumina-logo.png"
                alt="Lumina Logo"
                width={200}
                height={200}

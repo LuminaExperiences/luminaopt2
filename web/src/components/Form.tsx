@@ -65,7 +65,6 @@ export default function BookingForm() {
         <input
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
-          placeholder="Your full name"
           className={fieldClass}
           autoFocus
         />
@@ -78,7 +77,6 @@ export default function BookingForm() {
         <input
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          placeholder="e.g. +1 555 555 5555"
           className={fieldClass}
         />
       ),
@@ -91,7 +89,6 @@ export default function BookingForm() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="name@example.com"
           className={fieldClass}
         />
       ),
@@ -127,7 +124,6 @@ export default function BookingForm() {
                   arr[i] = e.target.value;
                   setAttendees(arr);
                 }}
-                placeholder={`Attendee ${i + 1} full name`}
                 className={fieldClass}
               />
             </motion.div>
@@ -172,7 +168,7 @@ export default function BookingForm() {
           <div className="mt-6 bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 text-sm">
             <div className="font-medium mb-2">Payment</div>
             <p className="text-[var(--muted)]">
-              Please Zelle the total amount to: +1 (912) 777-0981. Include your Full Name in the memo.
+              Please Zelle the total amount to: 2063836987. Include your Full Name in the memo.
             </p>
             <div className="mt-3 h-28 rounded-lg bg-[var(--secondary)] flex items-center justify-center text-[var(--muted)]">
               QR CODE PLACEHOLDER
@@ -275,7 +271,7 @@ export default function BookingForm() {
                     <div className="font-medium">Payment Reminder</div>
                     <p className="text-[var(--muted)]">
                       If you haven’t paid yet, please Zelle the total amount to
-                      <span className="text-white font-medium"> +1 (912) 777-0981</span>. Include your Full Name in the memo.
+                      <span className="text-white font-medium"> 2063836987</span>. Include your Full Name in the memo.
                     </p>
                     <p className="text-[var(--muted)]">Please wait patiently — you’ll receive your tickets by email once payment is verified.</p>
                   </div>
