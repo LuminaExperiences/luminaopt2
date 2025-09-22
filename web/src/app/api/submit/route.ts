@@ -9,7 +9,6 @@ export async function POST(req: Request) {
       email,
       count,
       attendees,
-      consentPhoto,
       agreeTerms,
     } = body || {};
 
@@ -20,6 +19,11 @@ export async function POST(req: Request) {
     // Basic server-side validation
     if (typeof count !== 'number' || count < 1 || count > 10) {
       return NextResponse.json({ ok: false, error: 'Invalid ticket count' }, { status: 400 });
+    }
+
+    // Reject UW domain emails for safety (mirrors frontend restriction)
+    if (typeof email === 'string' && email.trim().toLowerCase().endsWith('@uw.edu')) {
+      return NextResponse.json({ ok: false, error: 'UW email addresses are not allowed. Please use a non-UW email.' }, { status: 400 });
     }
 
     const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL;
@@ -36,7 +40,6 @@ export async function POST(req: Request) {
       payerEmail: email,
       numTickets: count,
       attendeeNames: attendees,
-      consentPhoto: !!consentPhoto,
       agreeTerms: !!agreeTerms,
     };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Staggered entrance: heading first, then questions, then submit
@@ -33,18 +33,21 @@ export default function BookingForm() {
   const [countInput, setCountInput] = useState('1');
   const count = Math.max(1, Math.min(10, Number(countInput) || 0));
   const [attendees, setAttendees] = useState<string[]>(['']);
-  const [consentPhoto, setConsentPhoto] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const emailLower = email.trim().toLowerCase();
+  const emailHasUW = emailLower.includes('@uw'); // realtime warning for any '@uw' occurrence
 
   const canSubmit = useMemo(() => {
     const nameOk = fullName.trim().length > 1;
     const phoneOk = /\+?\d[\d\s-]{6,}/.test(phone.trim());
-    const emailOk = /.+@.+\..+/.test(email.trim());
+    // Block submission if email contains '@uw' anywhere (stricter than backend)
+    const emailOk = /.+@.+\..+/.test(emailLower) && !emailLower.includes('@uw');
     const countOk = count >= 1 && count <= 10;
     const attendeesOk = attendees.slice(0, count).every((a) => a.trim().length > 1);
-    const consentsOk = consentPhoto && agreeTerms;
-    return nameOk && phoneOk && emailOk && countOk && attendeesOk && consentsOk;
-  }, [fullName, phone, email, count, attendees, consentPhoto, agreeTerms]);
+    return nameOk && phoneOk && emailOk && countOk && attendeesOk && agreeTerms && !submitting;
+  }, [fullName, phone, emailLower, count, attendees, agreeTerms, submitting]);
 
   const normalizeCountAndAttendees = (v: number) => {
     const clamped = Math.max(1, Math.min(10, v || 1));
@@ -55,6 +58,30 @@ export default function BookingForm() {
       return arr.slice(0, clamped);
     });
   };
+
+  // Track whether user manually edited first attendee to stop auto-sync
+  const lastAutoFill = useRef<string>('');
+  const userEditedFirstAttendee = useRef<boolean>(false);
+
+  // Autofill/sync attendee[0] with fullName while count=1 until user modifies attendee[0]
+  useEffect(() => {
+    if (count === 1 && !userEditedFirstAttendee.current) {
+      setAttendees((prev) => {
+        const arr = [...prev];
+        arr[0] = fullName; // sync to current fullName (can be empty)
+        lastAutoFill.current = fullName;
+        return arr;
+      });
+    }
+  }, [count, fullName]);
+
+  // Reset auto-fill guard when count changes away from 1
+  useEffect(() => {
+    if (count !== 1) {
+      userEditedFirstAttendee.current = false;
+      lastAutoFill.current = '';
+    }
+  }, [count]);
 
   // Questions config (for consistent rendering)
   const questions = [
@@ -85,12 +112,19 @@ export default function BookingForm() {
       key: 'email',
       label: 'Non-UW Email',
       input: (
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className={fieldClass}
-        />
+        <div className="w-full">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={fieldClass + (emailHasUW ? ' border-red-500 focus:ring-red-500/40' : '')}
+          />
+          {emailHasUW && (
+            <div className="mt-1 text-xs text-red-500" role="alert" aria-live="polite">
+              UW email addresses are not allowed. Please use a non-UW email.
+            </div>
+          )}
+        </div>
       ),
     },
     {
@@ -123,6 +157,12 @@ export default function BookingForm() {
                   const arr = attendees.slice();
                   arr[i] = e.target.value;
                   setAttendees(arr);
+                  if (i === 0) {
+                    // If user types something different than our last autofill, stop auto-sync
+                    if (e.target.value !== lastAutoFill.current) {
+                      userEditedFirstAttendee.current = true;
+                    }
+                  }
                 }}
                 className={fieldClass}
               />
@@ -135,17 +175,6 @@ export default function BookingForm() {
 
   const consentSection = (
     <div className="w-full space-y-4">
-      <label className="flex items-start gap-2.5">
-        <input
-          type="checkbox"
-          checked={consentPhoto}
-          onChange={(e) => setConsentPhoto(e.target.checked)}
-          className="mt-1.5"
-        />
-        <span className="text-sm text-[var(--muted)]">
-          I consent to being photographed and videographed, and acknowledge it is solely Lumina&apos;s discretion where those images may be shared.
-        </span>
-      </label>
       <label className="flex items-start gap-2.5">
         <input
           type="checkbox"
@@ -200,28 +229,32 @@ export default function BookingForm() {
                 disabled={!canSubmit}
                 onClick={async () => {
                   if (!canSubmit) return;
-                  normalizeCountAndAttendees(Number(countInput));
+                  setSubmitting(true);
+                  try {
+                    normalizeCountAndAttendees(Number(countInput));
 
-                  const res = await fetch('/api/submit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      fullName,
-                      phone,
-                      email,
-                      count,
-                      attendees,
-                      consentPhoto,
-                      agreeTerms,
-                    }),
-                  });
-                  const data = await res.json().catch(() => null);
-                  if (!res.ok || !data?.ok) {
-                    alert('Submission failed. Please try again.');
-                    return;
+                    const res = await fetch('/api/submit', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        fullName,
+                        phone,
+                        email,
+                        count,
+                        attendees,
+                        agreeTerms,
+                      }),
+                    });
+                    const data = await res.json().catch(() => null);
+                    if (!res.ok || !data?.ok) {
+                      alert('Submission failed. Please try again.');
+                      return;
+                    }
+                    setOverlayStep(0);
+                    setTimeout(() => setOverlayStep(1), 1800);
+                  } finally {
+                    setSubmitting(false);
                   }
-                  setOverlayStep(0);
-                  setTimeout(() => setOverlayStep(1), 1800);
                 }}
               >
                 Submit
@@ -276,7 +309,16 @@ export default function BookingForm() {
                     <p className="text-[var(--muted)]">Please wait patiently — you’ll receive your tickets by email once payment is verified.</p>
                   </div>
                   <div className="mt-6">
-                    <button className="px-5 py-2.5 rounded-lg bg-white text-black" onClick={() => setOverlayStep(null)}>
+                    <button className="px-5 py-2.5 rounded-lg bg-white text-black" onClick={() => {
+                      setOverlayStep(null);
+                      setFullName('');
+                      setPhone('');
+                      setEmail('');
+                      setCountInput('1');
+                      setAttendees(['']);
+                      setAgreeTerms(false);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}>
                       Done
                     </button>
                   </div>
