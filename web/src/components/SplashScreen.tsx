@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -37,14 +36,12 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             transition={{ duration: 1.2 }}
             className="w-full h-full flex items-center justify-center"
           >
-            <Image
-              src="/Frame 1.png"
+            <img
+              src="/lib.png"
               alt="Lumina Logo"
+              className="object-contain"
               width={200}
               height={200}
-              className="object-contain"
-              priority
-              unoptimized
             />
           </motion.div>
         )}

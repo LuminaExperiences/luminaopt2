@@ -626,17 +626,17 @@ function doGet(e) {
 /** [WEB APP] Receives JSON submissions from the Next.js site */
 function doPost(e) {
   try {
-+    // Security: validate API key if configured in Script Properties (name: API_KEY)
-+    try {
-+      const props = PropertiesService.getScriptProperties();
-+      const expectedKey = props ? props.getProperty('API_KEY') : null;
-+      const providedKey = (e && e.parameter && e.parameter.key) ? String(e.parameter.key) : '';
-+      if (expectedKey && expectedKey !== providedKey) {
-+        return ContentService.createTextOutput(JSON.stringify({ ok: false, error: 'Unauthorized' })).setMimeType(ContentService.MimeType.JSON);
-+      }
-+    } catch (secErr) {
-+      Logger.log(`Security check error: ${secErr}`);
-+    }
+    // Security: validate API key if configured in Script Properties (name: API_KEY)
+    try {
+      const props = PropertiesService.getScriptProperties();
+      const expectedKey = props ? props.getProperty('API_KEY') : null;
+      const providedKey = (e && e.parameter && e.parameter.key) ? String(e.parameter.key) : '';
+      if (expectedKey && expectedKey !== providedKey) {
+        return ContentService.createTextOutput(JSON.stringify({ ok: false, error: 'Unauthorized' })).setMimeType(ContentService.MimeType.JSON);
+      }
+    } catch (secErr) {
+      Logger.log(`Security check error: ${secErr}`);
+    }
 
     const raw = e && e.postData && e.postData.contents ? e.postData.contents : '{}';
     const data = JSON.parse(raw);
@@ -657,6 +657,11 @@ function doPost(e) {
     // Validate required fields
     if (!fullName || !payerEmail) {
       return ContentService.createTextOutput(JSON.stringify({ ok: false, error: 'Missing fullName or payerEmail' })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // Reject UW domain emails (mirrors onFormSubmit and frontend)
+    if (payerEmail.endsWith('@uw.edu')) {
+      return ContentService.createTextOutput(JSON.stringify({ ok: false, error: 'UW email addresses are not allowed. Please use a non-UW email.' })).setMimeType(ContentService.MimeType.JSON);
     }
 
     const ticketPrice = getTicketPrice(configSheet);

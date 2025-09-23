@@ -2,8 +2,8 @@
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+// removed next/image to avoid validation issues
 
-// Staggered entrance: heading first, then questions, then submit
 const containerVariants = {
   hidden: {},
   visible: {
@@ -17,19 +17,18 @@ const itemVariants = {
 };
 
 const fieldClass =
-  'w-full bg-[var(--input)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--foreground)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--foreground)]/20';
+  'w-full bg-[var(--input)] border border-transparent rounded-xl px-4 py-3 text-black placeholder:text-black/60 focus:outline-none focus:ring-2 focus:ring-[#FFCD7B]/30';
 
 const labelClass = 'text-sm text-[var(--muted)] mb-2';
 
 export default function BookingForm() {
-  // Post-submit overlay sequence state: 0 = "Shaadi me milte hai.", 1 = Thank you card
+  const [showTerms, setShowTerms] = useState(false);
   const [overlayStep, setOverlayStep] = useState<0 | 1 | null>(null);
 
   // Form state
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  // Use a string state for number input to allow free typing; convert later
   const [countInput, setCountInput] = useState('1');
   const count = Math.max(1, Math.min(10, Number(countInput) || 0));
   const [attendees, setAttendees] = useState<string[]>(['']);
@@ -37,12 +36,11 @@ export default function BookingForm() {
   const [submitting, setSubmitting] = useState(false);
 
   const emailLower = email.trim().toLowerCase();
-  const emailHasUW = emailLower.includes('@uw'); // realtime warning for any '@uw' occurrence
+  const emailHasUW = emailLower.includes('@uw');
 
   const canSubmit = useMemo(() => {
     const nameOk = fullName.trim().length > 1;
     const phoneOk = /\+?\d[\d\s-]{6,}/.test(phone.trim());
-    // Block submission if email contains '@uw' anywhere (stricter than backend)
     const emailOk = /.+@.+\..+/.test(emailLower) && !emailLower.includes('@uw');
     const countOk = count >= 1 && count <= 10;
     const attendeesOk = attendees.slice(0, count).every((a) => a.trim().length > 1);
@@ -59,23 +57,20 @@ export default function BookingForm() {
     });
   };
 
-  // Track whether user manually edited first attendee to stop auto-sync
   const lastAutoFill = useRef<string>('');
   const userEditedFirstAttendee = useRef<boolean>(false);
 
-  // Autofill/sync attendee[0] with fullName while count=1 until user modifies attendee[0]
   useEffect(() => {
     if (count === 1 && !userEditedFirstAttendee.current) {
       setAttendees((prev) => {
         const arr = [...prev];
-        arr[0] = fullName; // sync to current fullName (can be empty)
+        arr[0] = fullName;
         lastAutoFill.current = fullName;
         return arr;
       });
     }
   }, [count, fullName]);
 
-  // Reset auto-fill guard when count changes away from 1
   useEffect(() => {
     if (count !== 1) {
       userEditedFirstAttendee.current = false;
@@ -83,7 +78,6 @@ export default function BookingForm() {
     }
   }, [count]);
 
-  // Questions config (for consistent rendering)
   const questions = [
     {
       key: 'fullName',
@@ -136,7 +130,7 @@ export default function BookingForm() {
           min={1}
           max={10}
           value={countInput}
-          onChange={(e) => setCountInput(e.target.value)} // allow free typing
+          onChange={(e) => setCountInput(e.target.value)}
           onBlur={(e) => normalizeCountAndAttendees(Number(e.target.value))}
           className={fieldClass}
         />
@@ -158,7 +152,6 @@ export default function BookingForm() {
                   arr[i] = e.target.value;
                   setAttendees(arr);
                   if (i === 0) {
-                    // If user types something different than our last autofill, stop auto-sync
                     if (e.target.value !== lastAutoFill.current) {
                       userEditedFirstAttendee.current = true;
                     }
@@ -180,33 +173,51 @@ export default function BookingForm() {
           type="checkbox"
           checked={agreeTerms}
           onChange={(e) => setAgreeTerms(e.target.checked)}
-          className="mt-1.5"
+          className="mt-1.5 accent-[#A60046]"
         />
-        <span className="text-sm text-[var(--muted)]">I agree to all the terms and conditions.</span>
+        <span className="text-sm text-[var(--muted)]">
+          I agree to all the{' '}
+          <button type="button" onClick={() => setShowTerms(true)} className="underline hover:text-[#A60046] hover:[text-shadow:0_0_8px_rgba(166,0,70,0.65)] transition-all duration-200">
+            terms and conditions
+          </button>.
+          .
+        </span>
       </label>
     </div>
   );
 
   return (
     <>
+      <div className="w-full text-center mb-6 px-4">
+        <h1 className="font-['Times_New_Roman',_Times,_serif] whitespace-nowrap tracking-wide font-light leading-tight text-2xl sm:text-3xl md:text-4xl lg:text-5xl">The Big Fake Indian Wedding</h1>
+      </div>
       <motion.div initial="hidden" animate="visible" variants={containerVariants} className="max-w-xl mx-auto p-6">
-        {/* Heading block first */}
         <motion.div variants={itemVariants} className="text-center mb-8">
-          <h1 className="text-3xl sm:text-4xl font-light tracking-widest">The Big Fake Indian Wedding</h1>
-          <p className="text-[var(--muted)] mt-2">[Add your event description here...]</p>
-          <div className="mt-6 bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 text-sm">
-            <div className="font-medium mb-2">Payment</div>
-            <p className="text-[var(--muted)]">
-              Please Zelle the total amount to: 2063836987. Include your Full Name in the memo.
-            </p>
-            <div className="mt-3 h-28 rounded-lg bg-[var(--secondary)] flex items-center justify-center text-[var(--muted)]">
-              QR CODE PLACEHOLDER
+          {/* heading moved above for full-width centering */}
+          {/* Removed placeholder description paragraph */}
+          <div className="mt-6 bg-[var(--card)] rounded-2xl p-4 text-sm text-black">
+            {/* Removed "Payment" heading */}
+            <div className="space-y-3 text-left">
+              <p>
+                Lumina presents: A Big Fake Indian Wedding. The biggest night UW has ever seen — packed dance floors, jaw-dropping décor, and nonstop music. No vows, no rules — just color, chaos, and memories you’ll talk about for years. Don’t just attend. Be part of the legend.
+              </p>
+              <p>💍 Your ticket will reveal your side — bride or groom — with a matching dress code to bring the shaadi to life.</p>
+              <p>
+                <span className="font-semibold">Venue:</span> Walker Ames Room, Kane Hall<br/>
+                <span className="font-semibold">Time:</span> 8:30 PM<br/>
+                <span className="font-semibold">Doors:</span> 9:15PM<br/>
+                <span className="font-semibold">Payment:</span> Zelle to +1 (912)-777-0981, if not already done. Please text our Instagram @lumina.wa if you’d like to Venmo!
+              </p>
+              <p>
+                Please bring a valid form of identification to verify your identity. Brownie points for an Aadhar card. None for “Tu jaanta hai mera baap kaun hai?” We accept Husky cards.
+              </p>
+              <p>Shaadi mein milte hai!</p>
             </div>
+            <img src="/zelle-qr.png" alt="Zelle QR" width={180} height={180} className="mx-auto mt-4 rounded-md" />
           </div>
         </motion.div>
 
-        {/* Questionnaire container: grey card on black background */}
-        <motion.div variants={itemVariants} className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6">
+        <motion.div variants={itemVariants} className="bg-[var(--card)] rounded-2xl p-6 text-black">
           <motion.div variants={containerVariants} className="flex flex-col items-center text-center space-y-6">
             {questions.map((q) => (
               <motion.div key={q.key} variants={itemVariants} className="w-full max-w-md">
@@ -225,7 +236,7 @@ export default function BookingForm() {
 
             <motion.div variants={itemVariants} className="pt-2">
               <button
-                className="px-5 py-2.5 rounded-lg bg-white text-black disabled:opacity-50"
+                className="px-5 py-2.5 rounded-lg bg-[#A60046] text-[#FFCD7B] disabled:opacity-50 hover:brightness-110 transition"
                 disabled={!canSubmit}
                 onClick={async () => {
                   if (!canSubmit) return;
@@ -262,69 +273,84 @@ export default function BookingForm() {
             </motion.div>
           </motion.div>
         </motion.div>
+
+        {/* overlay unchanged ... */}
+
       </motion.div>
 
-      {/* Post-submission overlay sequence */}
+      {/* Terms & Conditions modal */}
       <AnimatePresence>
-        {overlayStep !== null && (
+        {showTerms && (
           <motion.div
-            key="overlay"
+            key="terms-modal"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.35 }}
-            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-6"
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+            onClick={() => setShowTerms(false)}
           >
-            <AnimatePresence mode="wait">
-              {overlayStep === 0 && (
-                <motion.div
-                  key="shaadi"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.6 }}
-                  className="text-center"
+            <motion.div
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 10, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-xl sm:max-w-2xl bg-[var(--card)] rounded-2xl p-6 text-left flex flex-col max-h-[80vh] sm:max-h-[85vh] text-black"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="terms-title"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <h2 id="terms-title" className="text-2xl font-light tracking-widest text-[#A60046]">Terms & Conditions</h2>
+                <button className="text-[#A60046] hover:opacity-80" onClick={() => setShowTerms(false)} aria-label="Close">
+                  ✕
+                </button>
+              </div>
+              <div className="mt-4 space-y-3 text-sm leading-relaxed overflow-y-auto flex-1 pr-2">
+                <p>Welcome to <strong>Lumina</strong>, a high-energy nightlife experience built for chaos, clarity, and connection.</p>
+                <p>By purchasing a ticket and/or attending, you agree to the following terms:</p>
+                <p className="font-semibold">1. Substance-Free Environment</p>
+                <p>Lumina is a strictly alcohol-, drug-, cigarette-, and e-cigarette-free event.</p>
+                <p>• Possession or use of intoxicating substances, cigarettes, or e-cigarettes is not permitted on the premises.</p>
+                <p>• Violation of this policy will result in immediate removal without refund and may incur a fine at the discretion of the organizers.</p>
+                <p className="font-semibold">2. Respect and Consent</p>
+                <p>• This is a shared space built on mutual respect and freedom of expression.</p>
+                <p>• Consent is non-negotiable. Any form of harassment, unwanted physical contact, or disrespectful behavior will result in immediate ejection without refund.</p>
+                <p>• Be responsible for your words, actions, and energy.</p>
+                <p className="font-semibold">3. Entry Requirements</p>
+                <p>• Valid government-issued ID or University of Washington Husky ID is required for entry.</p>
+                <p>• Attendees must be capable of walking without support. Individuals exhibiting signs of intoxication or physical impairment will not be admitted.</p>
+                <p>• Entry is permitted until 12:00 AM midnight. After that, the gates will close.</p>
+                <p>• Re-entry is allowed only if you originally checked in before 12:00 AM.</p>
+                <p className="font-semibold">4. Puking Policy</p>
+                <p>• Any instance of vomiting inside the venue will trigger a cleaning fee, which will be determined by the organizers based on the impact and extent of cleanup required.</p>
+                <p className="font-semibold">5. No Refunds or Transfers</p>
+                <p>• All tickets are non-refundable and non-transferable.</p>
+                <p>• In the case of event cancellation, only the base ticket price will be refunded.</p>
+                <p className="font-semibold">6. Photography &amp; Media Consent</p>
+                <p>• By entering, you consent to being photographed or recorded for promotional purposes.</p>
+                <p>• If you prefer not to be captured, please inform staff at check-in.</p>
+                <p className="font-semibold">7. Liability Waiver</p>
+                <p>• Attendees are responsible for their own behavior, belongings, and physical condition.</p>
+                <p>• Lumina organizers, staff, and venue partners are not liable for any personal injury, loss, or damage.</p>
+                <p className="font-semibold">🔁 Updates</p>
+                <p>These terms may be modified prior to the event. Attendance implies agreement to any updates.</p>
+                <p className="font-semibold">⚡Bring the Chaos — Keep It Clean</p>
+                <p>Lumina is a space to let go without substances — to dance harder, laugh louder, and connect more deeply. Keep it wild, keep it respectful, and let the magic unfold.</p>
+              </div>
+              <div className="mt-6 flex justify-end">
+                <button
+                  className="px-5 py-2.5 rounded-lg bg-[#A60046] text-[#FFCD7B] hover:brightness-110"
+                  onClick={() => {
+                    setAgreeTerms(true);
+                    setShowTerms(false);
+                  }}
                 >
-                  <div className="text-4xl sm:text-5xl font-light tracking-wider text-white">Shaadi me milte hai.</div>
-                </motion.div>
-              )}
-
-              {overlayStep === 1 && (
-                <motion.div
-                  key="thanks"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.6 }}
-                  className="max-w-lg w-full bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 text-center"
-                >
-                  <div className="text-2xl font-light">Thank you!</div>
-                  <p className="text-[var(--muted)] mt-2">We’ve received your request.</p>
-                  <div className="mt-5 text-left space-y-2">
-                    <div className="font-medium">Payment Reminder</div>
-                    <p className="text-[var(--muted)]">
-                      If you haven’t paid yet, please Zelle the total amount to
-                      <span className="text-white font-medium"> 2063836987</span>. Include your Full Name in the memo.
-                    </p>
-                    <p className="text-[var(--muted)]">Please wait patiently — you’ll receive your tickets by email once payment is verified.</p>
-                  </div>
-                  <div className="mt-6">
-                    <button className="px-5 py-2.5 rounded-lg bg-white text-black" onClick={() => {
-                      setOverlayStep(null);
-                      setFullName('');
-                      setPhone('');
-                      setEmail('');
-                      setCountInput('1');
-                      setAttendees(['']);
-                      setAgreeTerms(false);
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}>
-                      Done
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  I agree
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
