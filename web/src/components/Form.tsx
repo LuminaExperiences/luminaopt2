@@ -26,24 +26,33 @@ const TICKET_PRICE = 10; // Price per ticket in dollars
 // Decorative Border Component
 const DecorativeBorder = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="relative p-6 m-6">
-      {/* Full height background - even slimmer and 100% opacity */}
+    <div className="relative p-4 sm:p-6 m-2 sm:m-6">
+      {/* Full height background - responsive */}
       <div 
-        className="fixed inset-y-0 left-20 right-20 rounded-lg"
+        className="fixed inset-y-0 left-4 right-4 sm:left-20 sm:right-20 rounded-lg"
         style={{ 
           backgroundColor: '#870039',
           zIndex: -1
         }}
       />
       
-      {/* Top left corner decoration */}
-      <div className="absolute z-20" style={{ top: '-80px', left: '-120px' }}>
-        <Image src="/5.png" alt="Decorative corner" width={160} height={160} style={{ transform: 'scaleX(-1)' }} />
+      {/* Top left corner decoration - responsive */}
+      <div className="absolute z-20 hidden sm:block" style={{ top: '-60px', left: '-80px' }}>
+        <Image src="/5.png" alt="Decorative corner" width={120} height={120} style={{ transform: 'scaleX(-1)' }} />
       </div>
       
-      {/* Top right corner decoration */}
-      <div className="absolute z-20" style={{ top: '-80px', right: '-120px' }}>
-        <Image src="/5.png" alt="Decorative corner" width={160} height={160} />
+      {/* Top right corner decoration - responsive */}
+      <div className="absolute z-20 hidden sm:block" style={{ top: '-60px', right: '-80px' }}>
+        <Image src="/5.png" alt="Decorative corner" width={120} height={120} />
+      </div>
+      
+      {/* Mobile corner decorations - smaller and better positioned */}
+      <div className="absolute z-20 block sm:hidden" style={{ top: '-20px', left: '-20px' }}>
+        <Image src="/5.png" alt="Decorative corner" width={60} height={60} style={{ transform: 'scaleX(-1)' }} />
+      </div>
+      
+      <div className="absolute z-20 block sm:hidden" style={{ top: '-20px', right: '-20px' }}>
+        <Image src="/5.png" alt="Decorative corner" width={60} height={60} />
       </div>
       
       {/* Content */}
@@ -235,9 +244,14 @@ export default function BookingForm() {
   return (
     <>
       <DecorativeBorder>
-        <motion.div initial="hidden" animate="visible" variants={containerVariants} className="max-w-lg mx-auto p-6 pt-2">
+        <motion.div initial="hidden" animate="visible" variants={containerVariants} className="max-w-lg mx-auto p-3 sm:p-6 pt-2">
         <motion.div variants={itemVariants} className="text-center mb-6">
-          <h1 className="font-normal whitespace-nowrap text-center" style={{ fontFamily: 'var(--font-inria-serif)', fontSize: '48px', color: '#FFCD7B', marginLeft: '-80px' }}>The Big Fake Indian Wedding</h1>
+          <h1 className="font-normal text-center leading-tight" style={{ 
+            fontFamily: 'var(--font-inria-serif)', 
+            fontSize: 'clamp(24px, 8vw, 48px)', 
+            color: '#FFCD7B', 
+            marginLeft: 'clamp(-80px, -15vw, 0px)'
+          }}>The Big Fake Indian Wedding</h1>
           <div className="mt-10 space-y-2 leading-relaxed" style={{ fontFamily: 'var(--font-inria-serif)', fontSize: '16px', color: '#FFCD7B' }}>
             <p><strong>Lumina</strong> presents: A Big Fake Indian Wedding. Don&apos;t just attend. Be part of the legend.</p>
             
