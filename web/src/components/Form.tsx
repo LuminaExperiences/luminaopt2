@@ -316,10 +316,10 @@ export default function BookingForm() {
                   <div className="mt-5 text-left space-y-2">
                     <div className="font-medium">Payment Reminder</div>
                     <p className="text-[var(--muted)]">
-                      If you haven't paid yet, please Zelle the total amount to
+                      If you haven&apos;t paid yet, please Zelle the total amount to
                       <span className="text-white font-medium"> 9127770981</span>. Include your Full Name in the memo.
                     </p>
-                    <p className="text-[var(--muted)]">Please wait patiently — you’ll receive your tickets by email once payment is verified.</p>
+                    <p className="text-[var(--muted)]">Please wait patiently — you&apos;ll receive your tickets by email once payment is verified.</p>
                   </div>
                   <div className="mt-6">
                     <button className="px-5 py-2.5 rounded-lg bg-white text-black" onClick={() => {

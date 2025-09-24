@@ -943,8 +943,7 @@ function setupTriggers() {
   try { ScriptApp.newTrigger('checkZelleEmailsAndVerify').timeBased().everyMinutes(ZELLE_CHECK_INTERVAL_MINUTES).create(); Logger.log(`✅ checkZelleEmailsAndVerify trigger created (every ${ZELLE_CHECK_INTERVAL_MINUTES} mins).`); }
   catch (e) { Logger.log(`❌ ERROR creating checkZelleEmailsAndVerify trigger: ${e}`); errorOccurred = true; }
 
-  // Optional: Auto-process MANUALLY Approved Payments Trigger (commented out by default)
-  /*
+  // Auto-process MANUALLY Approved Payments Trigger
   try {
       ScriptApp.newTrigger('processApprovedPayments')
         .timeBased()
@@ -955,7 +954,6 @@ function setupTriggers() {
       Logger.log(`❌ ERROR creating processApprovedPayments trigger: ${e}`);
       errorOccurred = true;
   }
-  */
 
    Logger.log(`Trigger setup finished.`);
    // We check if the UI context is available before trying to use it to prevent errors when run automatically
