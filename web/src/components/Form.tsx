@@ -17,9 +17,9 @@ const itemVariants = {
 };
 
 const fieldClass =
-  'w-full bg-[var(--input)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--foreground)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--foreground)]/20';
+  'w-full rounded-xl px-4 py-3 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black/20';
 
-const labelClass = 'text-sm text-[var(--muted)] mb-2';
+const labelClass = 'text-sm mb-2 text-left' + ' ' + 'text-black';
 
 export default function BookingForm() {
 
@@ -141,25 +141,28 @@ export default function BookingForm() {
 
   const attendeeList = (
     <div className="w-full">
-      <div className="mb-2 text-sm text-[var(--muted)]">Attendee Names</div>
+      <div className="mb-2 text-sm text-left text-black">Attendee Names</div>
       <div className="space-y-3">
         <AnimatePresence initial={false}>
           {Array.from({ length: count }).map((_, i) => (
             <motion.div key={i} variants={itemVariants}>
-              <input
-                value={attendees[i] ?? ''}
-                onChange={(e) => {
-                  const arr = attendees.slice();
-                  arr[i] = e.target.value;
-                  setAttendees(arr);
-                  if (i === 0) {
-                    if (e.target.value !== lastAutoFill.current) {
-                      userEditedFirstAttendee.current = true;
+              <div style={{ backgroundColor: '#E3C18B' }} className="rounded-xl">
+                <input
+                  value={attendees[i] ?? ''}
+                  onChange={(e) => {
+                    const arr = attendees.slice();
+                    arr[i] = e.target.value;
+                    setAttendees(arr);
+                    if (i === 0) {
+                      if (e.target.value !== lastAutoFill.current) {
+                        userEditedFirstAttendee.current = true;
+                      }
                     }
-                  }
-                }}
-                className={fieldClass}
-              />
+                  }}
+                  className={fieldClass}
+                  style={{ backgroundColor: '#E3C18B' }}
+                />
+              </div>
             </motion.div>
           ))}
         </AnimatePresence>
@@ -174,14 +177,19 @@ export default function BookingForm() {
           type="checkbox"
           checked={agreeTerms}
           onChange={(e) => setAgreeTerms(e.target.checked)}
-          className="mt-1.5"
+          className="mt-1.5 w-4 h-4 rounded border-2 border-gray-400 focus:ring-2 focus:ring-offset-0"
+          style={{
+            accentColor: '#A60046',
+            backgroundColor: agreeTerms ? '#A60046' : 'transparent',
+            borderColor: agreeTerms ? '#A60046' : '#9CA3AF'
+          }}
         />
-        <span className="text-sm text-[var(--muted)]">
+        <span className="text-sm text-black">
           I agree to all the{' '}
           <button 
             type="button"
             onClick={() => setShowTermsModal(true)}
-            className="underline hover:text-white cursor-pointer"
+            className="underline hover:text-gray-700 cursor-pointer"
           >
             terms and conditions
           </button>
@@ -193,10 +201,10 @@ export default function BookingForm() {
 
   return (
     <>
-      <motion.div initial="hidden" animate="visible" variants={containerVariants} className="max-w-xl mx-auto p-6">
-        <motion.div variants={itemVariants} className="text-center mb-8">
-          <h1 className="text-3xl sm:text-4xl font-light tracking-widest">The Big Fake Indian Wedding</h1>
-          <div className="text-[var(--muted)] mt-4 space-y-3 text-sm leading-relaxed">
+      <motion.div initial="hidden" animate="visible" variants={containerVariants} className="max-w-lg mx-auto p-6">
+        <motion.div variants={itemVariants} className="text-center mb-6">
+          <h1 className="font-normal whitespace-nowrap text-center" style={{ fontFamily: 'var(--font-inria-serif)', fontSize: '36px', color: '#FFCD7B' }}>The Big Fake Indian Wedding</h1>
+          <div className="mt-3 space-y-2 leading-relaxed" style={{ fontFamily: 'var(--font-inria-serif)', fontSize: '16px', color: '#FFCD7B' }}>
             <p><strong>Lumina</strong> presents: A Big Fake Indian Wedding. Don&apos;t just attend. Be part of the legend.</p>
             
             <p>💍 Your ticket will reveal your side - bride or groom - with a matching dress code to bring the shaadi to life.</p>
@@ -207,29 +215,33 @@ export default function BookingForm() {
               <p><strong>Doors:</strong> 9:15PM</p>
             </div>
             
-            <p>Please text our Instagram <strong>@lumina.wa</strong> if you&apos;d like to Venmo!</p>
-            
             <p>Please bring a valid form of identification to verify your identity. Brownie points for an Aadhar card. None for &quot;Tu jaanta hai mera baap kaun hai?&quot; We accept Husky cards.</p>
             
             <p className="font-medium">Shaadi mein milte hai!</p>
           </div>
-          <div className="mt-6 bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 text-sm">
-            <div className="font-medium mb-2">Payment</div>
-            <p className="text-[var(--muted)]">
-              Please Zelle the total amount to: 9127770981. Include your Full Name in the memo.
-            </p>
-            <div className="mt-3 h-28 rounded-lg bg-[var(--secondary)] flex items-center justify-center text-[var(--muted)]">
-              <Image src="/paymentqrnew.png" alt="Zelle QR" width={112} height={112} className="rounded" />
+          <div className="mt-6 rounded-2xl p-4" style={{ backgroundColor: '#FAD59C' }}>
+            <div className="rounded-xl p-6 text-center" style={{ backgroundColor: '#E3C18B', fontFamily: 'var(--font-inria-serif)', fontSize: '16px', color: '#000000' }}>
+              <div className="mb-1">
+                <div className="font-normal">Ticket price: $10</div>
+                <div className="font-normal">Zelle at: (912)-777-0981</div>
+              </div>
+              <div className="mb-2 leading-tight">
+                Please contact us at luminaexperiences@gmail.com to set up a Venmo payment. However, this may result in delays in receiving tickets.
+              </div>
+              <div className="flex justify-center">
+                <Image src="/paymentqrnew.png" alt="Zelle QR" width={220} height={220} className="rounded" />
+              </div>
             </div>
           </div>
         </motion.div>
 
-        <motion.div variants={itemVariants} className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6">
-          <motion.div variants={containerVariants} className="flex flex-col items-center text-center space-y-6">
+        <motion.div variants={itemVariants} className="rounded-2xl p-6 flex flex-col items-center text-center space-y-6" style={{ backgroundColor: '#FAD59C', fontFamily: 'var(--font-inria-serif)' }}>
             {questions.map((q) => (
               <motion.div key={q.key} variants={itemVariants} className="w-full max-w-md">
                 <div className={labelClass}>{q.label}</div>
-                {q.input}
+                <div style={{ backgroundColor: '#E3C18B' }} className="rounded-xl">
+                  {q.input}
+                </div>
               </motion.div>
             ))}
 
@@ -243,7 +255,8 @@ export default function BookingForm() {
 
             <motion.div variants={itemVariants} className="pt-2">
               <button
-                className="px-5 py-2.5 rounded-lg bg-white text-black disabled:opacity-50"
+                className="px-5 py-2.5 rounded-lg text-white disabled:opacity-50"
+                style={{ backgroundColor: canSubmit ? '#A60046' : 'rgba(166, 0, 70, 0.4)' }}
                 disabled={!canSubmit}
                 onClick={async () => {
                   if (!canSubmit) return;
@@ -272,12 +285,11 @@ export default function BookingForm() {
                     setTimeout(() => setOverlayStep(1), 1800);
                   } finally {
                     setSubmitting(false);
-                  }
-                }}
-              >
-                Submit
-              </button>
-            </motion.div>
+                }
+              }}
+            >
+              {submitting ? 'Submitting...' : 'Submit'}
+            </button>
           </motion.div>
         </motion.div>
       </motion.div>
@@ -291,7 +303,8 @@ export default function BookingForm() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.35 }}
-            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-6"
+            className="fixed inset-0 z-50 flex items-center justify-center p-6"
+            style={{ backgroundColor: '#A60046' }}
           >
             <AnimatePresence mode="wait">
               {overlayStep === 0 && (
@@ -303,7 +316,7 @@ export default function BookingForm() {
                   transition={{ duration: 0.6 }}
                   className="text-center"
                 >
-                  <div className="text-4xl sm:text-5xl font-light tracking-wider text-white">Shaadi me milte hai.</div>
+                  <div className="text-4xl sm:text-5xl font-light tracking-wider" style={{ fontFamily: 'var(--font-inria-serif)', color: '#FFCD7B' }}>Shaadi me milte hai.</div>
                 </motion.div>
               )}
 
@@ -314,31 +327,34 @@ export default function BookingForm() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.6 }}
-                  className="max-w-lg w-full bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 text-center"
+                  className="max-w-lg w-full rounded-2xl p-4 text-center"
+                  style={{ backgroundColor: '#A60046' }}
                 >
-                  <div className="text-2xl font-light">Thank you!</div>
-                  <p className="text-[var(--muted)] mt-2">We’ve received your request.</p>
-                  <div className="mt-5 text-left space-y-2">
-                    <div className="font-medium">Payment Reminder</div>
-                    <p className="text-[var(--muted)]">
-                      If you haven&apos;t paid yet, please Zelle the total amount to
-                      <span className="text-white font-medium"> 9127770981</span>. Include your Full Name in the memo.
-                    </p>
-                    <p className="text-[var(--muted)]">Please wait patiently — you&apos;ll receive your tickets by email once payment is verified.</p>
-                  </div>
-                  <div className="mt-6">
-                    <button className="px-5 py-2.5 rounded-lg bg-white text-black" onClick={() => {
-                      setOverlayStep(null);
-                      setFullName('');
-                      setPhone('');
-                      setEmail('');
-                      setCountInput('1');
-                      setAttendees(['']);
-                      setAgreeTerms(false);
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}>
-                      Done
-                    </button>
+                  <div className="rounded-xl p-6" style={{ backgroundColor: '#E3C18B' }}>
+                    <div className="text-2xl font-light text-black" style={{ fontFamily: 'var(--font-inria-serif)' }}>Thank you!</div>
+                    <p className="text-black mt-2" style={{ fontFamily: 'var(--font-inria-serif)' }}>We've received your request.</p>
+                    <div className="mt-5 text-left space-y-2">
+                      <div className="font-medium text-black" style={{ fontFamily: 'var(--font-inria-serif)' }}>Payment Reminder</div>
+                      <p className="text-black" style={{ fontFamily: 'var(--font-inria-serif)' }}>
+                        If you haven&apos;t paid yet, please Zelle the total amount to
+                        <span className="font-medium"> 9127770981</span>. Include your Full Name in the memo.
+                      </p>
+                      <p className="text-black" style={{ fontFamily: 'var(--font-inria-serif)' }}>Please wait patiently — you&apos;ll receive your tickets by email once payment is verified.</p>
+                    </div>
+                    <div className="mt-6">
+                      <button className="px-5 py-2.5 rounded-lg text-white" style={{ backgroundColor: '#A60046', fontFamily: 'var(--font-inria-serif)' }} onClick={() => {
+                        setOverlayStep(null);
+                        setFullName('');
+                        setPhone('');
+                        setEmail('');
+                        setCountInput('1');
+                        setAttendees(['']);
+                        setAgreeTerms(false);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}>
+                        Done
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -361,24 +377,26 @@ export default function BookingForm() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[var(--card)] border border-[var(--border)] rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col"
+              className="rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col p-4"
+              style={{ backgroundColor: '#FAD59C' }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header with close button */}
-              <div className="flex items-center justify-between p-6 border-b border-[var(--border)]">
-                <h2 className="text-2xl font-light tracking-widest">Terms & Conditions</h2>
-                <button
-                  onClick={() => setShowTermsModal(false)}
-                  className="text-[var(--muted)] hover:text-white transition-colors p-1"
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M18 6L6 18M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
+              <div className="rounded-xl flex flex-col h-full min-h-0" style={{ backgroundColor: '#E3C18B' }}>
+                {/* Header with close button */}
+                <div className="flex items-center justify-between p-6">
+                  <h2 className="text-2xl font-light tracking-widest text-black" style={{ fontFamily: 'var(--font-inria-serif)' }}>Terms & Conditions</h2>
+                  <button
+                    onClick={() => setShowTermsModal(false)}
+                    className="text-black hover:text-gray-700 transition-colors p-1"
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
 
-              {/* Scrollable content */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4 leading-relaxed text-sm">
+                {/* Scrollable content */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-4 leading-relaxed text-sm text-black min-h-0" style={{ fontFamily: 'var(--font-inria-serif)' }}>
                 <p>Welcome to <strong>Lumina</strong>, a high-energy nightlife experience built for chaos, clarity, and connection.</p>
                 <p>By purchasing a ticket and/or attending, you agree to the following terms:</p>
                 <p className="font-semibold">1. Substance-Free Environment</p>
@@ -411,17 +429,19 @@ export default function BookingForm() {
                 <p>Lumina is a space to let go without substances — to dance harder, laugh louder, and connect more deeply. Keep it wild, keep it respectful, and let the magic unfold.</p>
               </div>
 
-              {/* Footer with I Agree button */}
-              <div className="p-6 border-t border-[var(--border)]">
-                <button
-                  onClick={() => {
-                    setAgreeTerms(true);
-                    setShowTermsModal(false);
-                  }}
-                  className="w-full bg-white text-black py-3 rounded-xl font-medium hover:bg-gray-100 transition-colors"
-                >
-                  I Agree
-                </button>
+                {/* Footer with I Agree button */}
+                <div className="p-6">
+                  <button
+                    onClick={() => {
+                      setAgreeTerms(true);
+                      setShowTermsModal(false);
+                    }}
+                    className="w-full text-white py-3 rounded-xl font-medium transition-colors"
+                    style={{ backgroundColor: '#A60046', fontFamily: 'var(--font-inria-serif)' }}
+                  >
+                    I Agree
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>

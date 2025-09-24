@@ -26,7 +26,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
   }, [onComplete]);
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: '#000000' }}>
+    <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: '#A60046' }}>
       <AnimatePresence mode="wait">
         {currentStep === 0 && (
           <motion.div
@@ -38,7 +38,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             className="w-full h-full flex items-center justify-center"
           >
             <Image
-              src="/lib.png"
+              src="/newlogowhite.png"
               alt="Lumina Logo"
               className="object-contain"
               width={200}
@@ -57,8 +57,8 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             className="text-center"
           >
             <h1
-              className="text-7xl font-thin text-white tracking-widest"
-              style={{ fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif' }}
+              className="text-7xl font-thin tracking-widest"
+              style={{ fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif', color: '#FFCD7B' }}
             >
               Lumina
             </h1>
@@ -75,8 +75,8 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             className="text-center"
           >
             <p
-              className="text-2xl text-gray-400 font-light tracking-wide"
-              style={{ fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif' }}
+              className="text-2xl font-light tracking-wide"
+              style={{ fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif', color: '#FFCD7B' }}
             >
               Let the parties begin.
             </p>

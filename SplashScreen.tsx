@@ -26,7 +26,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
   }, [onComplete]);
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: '#000000' }}>
+    <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: '#A60046' }}>
       <AnimatePresence mode="wait">
         {currentStep === 0 && (
           <motion.div
@@ -38,8 +38,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             className="w-full h-full flex items-center justify-center"
           >
             <Image
--               src="/Frame 1.png"
-+               src="/lumina-logo.png"
+               src="/newlogowhite.png"
                alt="Lumina Logo"
                width={200}
                height={200}
