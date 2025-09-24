@@ -259,7 +259,7 @@ export default function BookingForm() {
                 Please contact us at luminaexperiences@gmail.com to set up a Venmo payment. However, this may result in delays in receiving tickets.
               </div>
               <div className="flex justify-center">
-                <Image src="/paymentqrnew.png" alt="Zelle QR" width={560} height={560} className="rounded" />
+                <Image src="/finalpayqr.png" alt="Zelle QR" width={560} height={560} className="rounded" />
               </div>
             </div>
           </div>
