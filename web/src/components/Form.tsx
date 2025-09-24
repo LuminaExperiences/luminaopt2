@@ -34,6 +34,7 @@ export default function BookingForm() {
   const [attendees, setAttendees] = useState<string[]>(['']);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   const emailLower = email.trim().toLowerCase();
   const emailHasUW = emailLower.includes('@uw');
@@ -177,9 +178,13 @@ export default function BookingForm() {
         />
         <span className="text-sm text-[var(--muted)]">
           I agree to all the{' '}
-          <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-white">
+          <button 
+            type="button"
+            onClick={() => setShowTermsModal(true)}
+            className="underline hover:text-white cursor-pointer"
+          >
             terms and conditions
-          </a>
+          </button>
           .
         </span>
       </label>
@@ -342,6 +347,86 @@ export default function BookingForm() {
         )}
       </AnimatePresence>
 
+      {/* Terms & Conditions Modal */}
+      <AnimatePresence>
+        {showTermsModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowTermsModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[var(--card)] border border-[var(--border)] rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header with close button */}
+              <div className="flex items-center justify-between p-6 border-b border-[var(--border)]">
+                <h2 className="text-2xl font-light tracking-widest">Terms & Conditions</h2>
+                <button
+                  onClick={() => setShowTermsModal(false)}
+                  className="text-[var(--muted)] hover:text-white transition-colors p-1"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Scrollable content */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 leading-relaxed text-sm">
+                <p>Welcome to <strong>Lumina</strong>, a high-energy nightlife experience built for chaos, clarity, and connection.</p>
+                <p>By purchasing a ticket and/or attending, you agree to the following terms:</p>
+                <p className="font-semibold">1. Substance-Free Environment</p>
+                <p>Lumina is a strictly alcohol-, drug-, cigarette-, and e-cigarette-free event.</p>
+                <p>• Possession or use of intoxicating substances, cigarettes, or e-cigarettes is not permitted on the premises.</p>
+                <p>• Violation of this policy will result in immediate removal without refund and may incur a fine at the discretion of the organizers.</p>
+                <p className="font-semibold">2. Respect and Consent</p>
+                <p>• This is a shared space built on mutual respect and freedom of expression.</p>
+                <p>• Consent is non-negotiable. Any form of harassment, unwanted physical contact, or disrespectful behavior will result in immediate ejection without refund.</p>
+                <p>• Be responsible for your words, actions, and energy.</p>
+                <p className="font-semibold">3. Entry Requirements</p>
+                <p>• Valid government-issued ID or University of Washington Husky ID is required for entry.</p>
+                <p>• Attendees must be capable of walking without support. Individuals exhibiting signs of intoxication or physical impairment will not be admitted.</p>
+                <p>• Entry is permitted until 12:00 AM midnight. After that, the gates will close.</p>
+                <p>• Re-entry is allowed only if you originally checked in before 12:00 AM.</p>
+                <p className="font-semibold">4. Puking Policy</p>
+                <p>• Any instance of vomiting inside the venue will trigger a cleaning fee, which will be determined by the organizers based on the impact and extent of cleanup required.</p>
+                <p className="font-semibold">5. No Refunds or Transfers</p>
+                <p>• All tickets are non-refundable and non-transferable.</p>
+                <p>• In the case of event cancellation, only the base ticket price will be refunded.</p>
+                <p className="font-semibold">6. Photography &amp; Media Consent</p>
+                <p>• By entering, you consent to being photographed or recorded for promotional purposes.</p>
+                <p>• If you prefer not to be captured, please inform staff at check-in.</p>
+                <p className="font-semibold">7. Liability Waiver</p>
+                <p>• Attendees are responsible for their own behavior, belongings, and physical condition.</p>
+                <p>• Lumina organizers, staff, and venue partners are not liable for any personal injury, loss, or damage.</p>
+                <p className="font-semibold">🔁 Updates</p>
+                <p>These terms may be modified prior to the event. Attendance implies agreement to any updates.</p>
+                <p className="font-semibold">⚡Bring the Chaos — Keep It Clean</p>
+                <p>Lumina is a space to let go without substances — to dance harder, laugh louder, and connect more deeply. Keep it wild, keep it respectful, and let the magic unfold.</p>
+              </div>
+
+              {/* Footer with I Agree button */}
+              <div className="p-6 border-t border-[var(--border)]">
+                <button
+                  onClick={() => {
+                    setAgreeTerms(true);
+                    setShowTermsModal(false);
+                  }}
+                  className="w-full bg-white text-black py-3 rounded-xl font-medium hover:bg-gray-100 transition-colors"
+                >
+                  I Agree
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </>
   );
