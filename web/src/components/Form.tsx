@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-// removed next/image to avoid validation issues
+import Image from 'next/image';
 
 const containerVariants = {
   hidden: {},
@@ -192,9 +192,9 @@ export default function BookingForm() {
         <motion.div variants={itemVariants} className="text-center mb-8">
           <h1 className="text-3xl sm:text-4xl font-light tracking-widest">The Big Fake Indian Wedding</h1>
           <div className="text-[var(--muted)] mt-4 space-y-3 text-sm leading-relaxed">
-            <p><strong>Lumina</strong> presents: A Big Fake Indian Wedding. Don't just attend. Be part of the legend.</p>
+            <p><strong>Lumina</strong> presents: A Big Fake Indian Wedding. Don&apos;t just attend. Be part of the legend.</p>
             
-            <p>💍 Your ticket will reveal your side — bride or groom — with a matching dress code to bring the shaadi to life.</p>
+            <p>💍 Your ticket will reveal your side - bride or groom - with a matching dress code to bring the shaadi to life.</p>
             
             <div className="space-y-1">
               <p><strong>Venue:</strong> Walker Ames Room, Kane Hall</p>
@@ -202,9 +202,9 @@ export default function BookingForm() {
               <p><strong>Doors:</strong> 9:15PM</p>
             </div>
             
-            <p>Please text our Instagram <strong>@lumina.wa</strong> if you'd like to Venmo!</p>
+            <p>Please text our Instagram <strong>@lumina.wa</strong> if you&apos;d like to Venmo!</p>
             
-            <p>Please bring a valid form of identification to verify your identity. Brownie points for an Aadhar card. None for "Tu jaanta hai mera baap kaun hai?" We accept Husky cards.</p>
+            <p>Please bring a valid form of identification to verify your identity. Brownie points for an Aadhar card. None for &quot;Tu jaanta hai mera baap kaun hai?&quot; We accept Husky cards.</p>
             
             <p className="font-medium">Shaadi mein milte hai!</p>
           </div>
@@ -214,7 +214,7 @@ export default function BookingForm() {
               Please Zelle the total amount to: 2063836987. Include your Full Name in the memo.
             </p>
             <div className="mt-3 h-28 rounded-lg bg-[var(--secondary)] flex items-center justify-center text-[var(--muted)]">
-              <img src="/paymentqrnew.png" alt="Zelle QR" width={112} height={112} className="rounded" />
+              <Image src="/paymentqrnew.png" alt="Zelle QR" width={112} height={112} className="rounded" />
             </div>
           </div>
         </motion.div>
