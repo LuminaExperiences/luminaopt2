@@ -191,7 +191,23 @@ export default function BookingForm() {
       <motion.div initial="hidden" animate="visible" variants={containerVariants} className="max-w-xl mx-auto p-6">
         <motion.div variants={itemVariants} className="text-center mb-8">
           <h1 className="text-3xl sm:text-4xl font-light tracking-widest">The Big Fake Indian Wedding</h1>
-          <p className="text-[var(--muted)] mt-2">[Add your event description here...]</p>
+          <div className="text-[var(--muted)] mt-4 space-y-3 text-sm leading-relaxed">
+            <p><strong>Lumina</strong> presents: A Big Fake Indian Wedding. Don't just attend. Be part of the legend.</p>
+            
+            <p>💍 Your ticket will reveal your side — bride or groom — with a matching dress code to bring the shaadi to life.</p>
+            
+            <div className="space-y-1">
+              <p><strong>Venue:</strong> Walker Ames Room, Kane Hall</p>
+              <p><strong>Time:</strong> 8:30 PM</p>
+              <p><strong>Doors:</strong> 9:15PM</p>
+            </div>
+            
+            <p>Please text our Instagram <strong>@lumina.wa</strong> if you'd like to Venmo!</p>
+            
+            <p>Please bring a valid form of identification to verify your identity. Brownie points for an Aadhar card. None for "Tu jaanta hai mera baap kaun hai?" We accept Husky cards.</p>
+            
+            <p className="font-medium">Shaadi mein milte hai!</p>
+          </div>
           <div className="mt-6 bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 text-sm">
             <div className="font-medium mb-2">Payment</div>
             <p className="text-[var(--muted)]">
