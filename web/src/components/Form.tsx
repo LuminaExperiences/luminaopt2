@@ -21,6 +21,39 @@ const fieldClass =
 
 const labelClass = 'text-sm mb-2 text-left' + ' ' + 'text-black';
 
+const TICKET_PRICE = 10; // Price per ticket in dollars
+
+// Decorative Border Component
+const DecorativeBorder = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div className="relative p-6 m-6">
+      {/* Full height background - even slimmer and 100% opacity */}
+      <div 
+        className="fixed inset-y-0 left-20 right-20 rounded-lg"
+        style={{ 
+          backgroundColor: '#870039',
+          zIndex: -1
+        }}
+      />
+      
+      {/* Top left corner decoration */}
+      <div className="absolute z-20" style={{ top: '-80px', left: '-120px' }}>
+        <Image src="/5.png" alt="Decorative corner" width={160} height={160} style={{ transform: 'scaleX(-1)' }} />
+      </div>
+      
+      {/* Top right corner decoration */}
+      <div className="absolute z-20" style={{ top: '-80px', right: '-120px' }}>
+        <Image src="/5.png" alt="Decorative corner" width={160} height={160} />
+      </div>
+      
+      {/* Content */}
+      <div className="relative z-10">
+        {children}
+      </div>
+    </div>
+  );
+};
+
 export default function BookingForm() {
 
   const [overlayStep, setOverlayStep] = useState<0 | 1 | null>(null);
@@ -201,10 +234,11 @@ export default function BookingForm() {
 
   return (
     <>
-      <motion.div initial="hidden" animate="visible" variants={containerVariants} className="max-w-lg mx-auto p-6">
+      <DecorativeBorder>
+        <motion.div initial="hidden" animate="visible" variants={containerVariants} className="max-w-lg mx-auto p-6 pt-2">
         <motion.div variants={itemVariants} className="text-center mb-6">
-          <h1 className="font-normal whitespace-nowrap text-center" style={{ fontFamily: 'var(--font-inria-serif)', fontSize: '36px', color: '#FFCD7B' }}>The Big Fake Indian Wedding</h1>
-          <div className="mt-3 space-y-2 leading-relaxed" style={{ fontFamily: 'var(--font-inria-serif)', fontSize: '16px', color: '#FFCD7B' }}>
+          <h1 className="font-normal whitespace-nowrap text-center" style={{ fontFamily: 'var(--font-inria-serif)', fontSize: '48px', color: '#FFCD7B', marginLeft: '-80px' }}>The Big Fake Indian Wedding</h1>
+          <div className="mt-10 space-y-2 leading-relaxed" style={{ fontFamily: 'var(--font-inria-serif)', fontSize: '16px', color: '#FFCD7B' }}>
             <p><strong>Lumina</strong> presents: A Big Fake Indian Wedding. Don&apos;t just attend. Be part of the legend.</p>
             
             <p>💍 Your ticket will reveal your side - bride or groom - with a matching dress code to bring the shaadi to life.</p>
@@ -220,16 +254,16 @@ export default function BookingForm() {
             <p className="font-medium">Shaadi mein milte hai!</p>
           </div>
           <div className="mt-6 rounded-2xl p-4" style={{ backgroundColor: '#FAD59C' }}>
-            <div className="rounded-xl p-6 text-center" style={{ backgroundColor: '#E3C18B', fontFamily: 'var(--font-inria-serif)', fontSize: '16px', color: '#000000' }}>
+            <div className="rounded-xl px-6 pt-6 pb-1 text-center" style={{ backgroundColor: '#E3C18B', fontFamily: 'var(--font-inria-serif)', fontSize: '16px', color: '#000000' }}>
               <div className="mb-1">
-                <div className="font-normal">Ticket price: $10</div>
+                <div className="font-normal">Ticket price: ${TICKET_PRICE * count}</div>
                 <div className="font-normal">Zelle at: (912)-777-0981</div>
               </div>
-              <div className="mb-2 leading-tight">
+              <div className="leading-tight">
                 Please contact us at luminaexperiences@gmail.com to set up a Venmo payment. However, this may result in delays in receiving tickets.
               </div>
               <div className="flex justify-center">
-                <Image src="/paymentqrnew.png" alt="Zelle QR" width={220} height={220} className="rounded" />
+                <Image src="/paymentqrnew.png" alt="Zelle QR" width={560} height={560} className="rounded" />
               </div>
             </div>
           </div>
@@ -293,6 +327,7 @@ export default function BookingForm() {
           </motion.div>
         </motion.div>
       </motion.div>
+      </DecorativeBorder>
 
       {/* Post-submission overlay sequence */}
       <AnimatePresence>
@@ -332,14 +367,28 @@ export default function BookingForm() {
                 >
                   <div className="rounded-xl p-6" style={{ backgroundColor: '#E3C18B' }}>
                     <div className="text-2xl font-light text-black" style={{ fontFamily: 'var(--font-inria-serif)' }}>Thank you!</div>
-                    <p className="text-black mt-2" style={{ fontFamily: 'var(--font-inria-serif)' }}>We&apos;ve received your request.</p>
-                    <div className="mt-5 text-left space-y-2">
-                      <div className="font-medium text-black" style={{ fontFamily: 'var(--font-inria-serif)' }}>Payment Reminder</div>
-                      <p className="text-black" style={{ fontFamily: 'var(--font-inria-serif)' }}>
-                        If you haven&apos;t paid yet, please Zelle the total amount to
-                        <span className="font-medium"> 9127770981</span>. Include your Full Name in the memo.
+                    <div className="mt-4 text-left space-y-3 text-sm" style={{ fontFamily: 'var(--font-inria-serif)' }}>
+                      <p className="text-black">
+                        Thank you for booking your ticket for <span className="font-medium">The Big Fake Indian Wedding</span>, UW Lumina&apos;s most chaotic, colorful celebration! We&apos;ll get back to you with your scannable tickets shortly. Please check your spam folder if you don&apos;t see them within 30 minutes.
                       </p>
-                      <p className="text-black" style={{ fontFamily: 'var(--font-inria-serif)' }}>Please wait patiently — you&apos;ll receive your tickets by email once payment is verified.</p>
+                      
+                      <div className="space-y-2">
+                        <div className="font-medium text-black">Payment Details:</div>
+                        <p className="text-black">
+                          <span className="font-medium">Zelle to:</span> +1 (912) 777-0981<br/>
+                          <span className="font-medium">Ticket Price:</span> ${TICKET_PRICE * count}<br/>
+                          <span className="font-medium">Include your Full Name in the memo</span>
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <p className="text-black">
+                          For questions, reach us at <span className="font-medium">luminaexperiences@gmail.com</span>
+                        </p>
+                        <p className="text-black">
+                          Follow the madness on Instagram <span className="font-medium">@lumina.wa</span> for party updates!
+                        </p>
+                      </div>
                     </div>
                     <div className="mt-6">
                       <button className="px-5 py-2.5 rounded-lg text-white" style={{ backgroundColor: '#A60046', fontFamily: 'var(--font-inria-serif)' }} onClick={() => {
