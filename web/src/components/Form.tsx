@@ -36,6 +36,8 @@ const DecorativeBorder = ({ children }: { children: React.ReactNode }) => {
         }}
       />
       
+
+      
       {/* Content */}
       <div className="relative z-10">
         {children}
