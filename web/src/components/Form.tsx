@@ -22,7 +22,7 @@ const fieldClass =
 const labelClass = 'text-sm text-[var(--muted)] mb-2';
 
 export default function BookingForm() {
-  const [showTerms, setShowTerms] = useState(false);
+
   const [overlayStep, setOverlayStep] = useState<0 | 1 | null>(null);
 
   // Form state
@@ -177,9 +177,9 @@ export default function BookingForm() {
         />
         <span className="text-sm text-[var(--muted)]">
           I agree to all the{' '}
-          <button type="button" onClick={() => setShowTerms(true)} className="underline hover:text-white">
+          <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-white">
             terms and conditions
-          </button>
+          </a>
           .
         </span>
       </label>
@@ -211,7 +211,7 @@ export default function BookingForm() {
           <div className="mt-6 bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 text-sm">
             <div className="font-medium mb-2">Payment</div>
             <p className="text-[var(--muted)]">
-              Please Zelle the total amount to: 2063836987. Include your Full Name in the memo.
+              Please Zelle the total amount to: 9127770981. Include your Full Name in the memo.
             </p>
             <div className="mt-3 h-28 rounded-lg bg-[var(--secondary)] flex items-center justify-center text-[var(--muted)]">
               <Image src="/paymentqrnew.png" alt="Zelle QR" width={112} height={112} className="rounded" />
@@ -316,8 +316,8 @@ export default function BookingForm() {
                   <div className="mt-5 text-left space-y-2">
                     <div className="font-medium">Payment Reminder</div>
                     <p className="text-[var(--muted)]">
-                      If you haven’t paid yet, please Zelle the total amount to
-                      <span className="text-white font-medium"> 2063836987</span>. Include your Full Name in the memo.
+                      If you haven't paid yet, please Zelle the total amount to
+                      <span className="text-white font-medium"> 9127770981</span>. Include your Full Name in the memo.
                     </p>
                     <p className="text-[var(--muted)]">Please wait patiently — you’ll receive your tickets by email once payment is verified.</p>
                   </div>
@@ -342,82 +342,7 @@ export default function BookingForm() {
         )}
       </AnimatePresence>
 
-      {/* Terms & Conditions modal */}
-      <AnimatePresence>
-        {showTerms && (
-          <motion.div
-            key="terms-modal"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
-            onClick={() => setShowTerms(false)}
-          >
-            <motion.div
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 10, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="w-full max-w-xl sm:max-w-2xl bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 text-left flex flex-col max-h-[80vh] sm:max-h-[85vh]"
-              onClick={(e) => e.stopPropagation()}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="terms-title"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <h2 id="terms-title" className="text-2xl font-light tracking-widest">Terms & Conditions</h2>
-                <button className="text-[var(--muted)] hover:text-white" onClick={() => setShowTerms(false)} aria-label="Close">
-                  ✕
-                </button>
-              </div>
-              <div className="mt-4 space-y-3 text-sm leading-relaxed text-[var(--muted)] overflow-y-auto flex-1 pr-2">
-                <p>Welcome to <strong>Lumina</strong>, a high-energy nightlife experience built for chaos, clarity, and connection.</p>
-                <p>By purchasing a ticket and/or attending, you agree to the following terms:</p>
-                <p className="font-semibold">1. Substance-Free Environment</p>
-                <p>Lumina is a strictly alcohol-, drug-, cigarette-, and e-cigarette-free event.</p>
-                <p>• Possession or use of intoxicating substances, cigarettes, or e-cigarettes is not permitted on the premises.</p>
-                <p>• Violation of this policy will result in immediate removal without refund and may incur a fine at the discretion of the organizers.</p>
-                <p className="font-semibold">2. Respect and Consent</p>
-                <p>• This is a shared space built on mutual respect and freedom of expression.</p>
-                <p>• Consent is non-negotiable. Any form of harassment, unwanted physical contact, or disrespectful behavior will result in immediate ejection without refund.</p>
-                <p>• Be responsible for your words, actions, and energy.</p>
-                <p className="font-semibold">3. Entry Requirements</p>
-                <p>• Valid government-issued ID or University of Washington Husky ID is required for entry.</p>
-                <p>• Attendees must be capable of walking without support. Individuals exhibiting signs of intoxication or physical impairment will not be admitted.</p>
-                <p>• Entry is permitted until 12:00 AM midnight. After that, the gates will close.</p>
-                <p>• Re-entry is allowed only if you originally checked in before 12:00 AM.</p>
-                <p className="font-semibold">4. Puking Policy</p>
-                <p>• Any instance of vomiting inside the venue will trigger a cleaning fee, which will be determined by the organizers based on the impact and extent of cleanup required.</p>
-                <p className="font-semibold">5. No Refunds or Transfers</p>
-                <p>• All tickets are non-refundable and non-transferable.</p>
-                <p>• In the case of event cancellation, only the base ticket price will be refunded.</p>
-                <p className="font-semibold">6. Photography &amp; Media Consent</p>
-                <p>• By entering, you consent to being photographed or recorded for promotional purposes.</p>
-                <p>• If you prefer not to be captured, please inform staff at check-in.</p>
-                <p className="font-semibold">7. Liability Waiver</p>
-                <p>• Attendees are responsible for their own behavior, belongings, and physical condition.</p>
-                <p>• Lumina organizers, staff, and venue partners are not liable for any personal injury, loss, or damage.</p>
-                <p className="font-semibold">🔁 Updates</p>
-                <p>These terms may be modified prior to the event. Attendance implies agreement to any updates.</p>
-                <p className="font-semibold">⚡Bring the Chaos — Keep It Clean</p>
-                <p>Lumina is a space to let go without substances — to dance harder, laugh louder, and connect more deeply. Keep it wild, keep it respectful, and let the magic unfold.</p>
-              </div>
-              <div className="mt-6 flex justify-end">
-                <button
-                  className="px-5 py-2.5 rounded-lg bg-white text-black"
-                  onClick={() => {
-                    setAgreeTerms(true);
-                    setShowTerms(false);
-                  }}
-                >
-                  I agree
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
     </>
   );
 }
