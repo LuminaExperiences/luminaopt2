@@ -35,13 +35,13 @@ export const metadata: Metadata = {
     siteName: "Lumina Experiences",
     images: [
       {
-        url: "/Frame 1.png", // Primary logo for social sharing
+        url: "/lib.png", // Primary logo for social sharing
         width: 1200,
         height: 630,
         alt: "Lumina Experiences Logo",
       },
       {
-        url: "/newlogowhite.png", // Alternative logo
+        url: "/Frame 1.png", // Alternative logo
         width: 800,
         height: 600,
         alt: "Lumina Logo",
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Lumina - The Big Fake Indian Wedding",
     description: "Let the parties begin. Join us for an immersive cultural experience.",
-    images: ["/Frame 1.png"],
+    images: ["/lib.png"],
     creator: "@lumina.wa",
   },
   
