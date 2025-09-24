@@ -36,25 +36,6 @@ const DecorativeBorder = ({ children }: { children: React.ReactNode }) => {
         }}
       />
       
-      {/* Top left corner decoration - responsive */}
-      <div className="absolute z-20 hidden sm:block" style={{ top: '-60px', left: '-80px' }}>
-        <Image src="/5.png" alt="Decorative corner" width={120} height={120} style={{ transform: 'scaleX(-1)' }} />
-      </div>
-      
-      {/* Top right corner decoration - responsive */}
-      <div className="absolute z-20 hidden sm:block" style={{ top: '-60px', right: '-80px' }}>
-        <Image src="/5.png" alt="Decorative corner" width={120} height={120} />
-      </div>
-      
-      {/* Mobile corner decorations - smaller and better positioned */}
-      <div className="absolute z-20 block sm:hidden" style={{ top: '-20px', left: '-20px' }}>
-        <Image src="/5.png" alt="Decorative corner" width={60} height={60} style={{ transform: 'scaleX(-1)' }} />
-      </div>
-      
-      <div className="absolute z-20 block sm:hidden" style={{ top: '-20px', right: '-20px' }}>
-        <Image src="/5.png" alt="Decorative corner" width={60} height={60} />
-      </div>
-      
       {/* Content */}
       <div className="relative z-10">
         {children}
@@ -249,8 +230,7 @@ export default function BookingForm() {
           <h1 className="font-normal text-center leading-tight" style={{ 
             fontFamily: 'var(--font-inria-serif)', 
             fontSize: 'clamp(24px, 8vw, 48px)', 
-            color: '#FFCD7B', 
-            marginLeft: 'clamp(-80px, -15vw, 0px)'
+            color: '#FFCD7B'
           }}>The Big Fake Indian Wedding</h1>
           <div className="mt-10 space-y-2 leading-relaxed" style={{ fontFamily: 'var(--font-inria-serif)', fontSize: '16px', color: '#FFCD7B' }}>
             <p><strong>Lumina</strong> presents: A Big Fake Indian Wedding. Don&apos;t just attend. Be part of the legend.</p>
