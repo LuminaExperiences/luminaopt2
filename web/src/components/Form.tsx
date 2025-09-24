@@ -332,7 +332,7 @@ export default function BookingForm() {
                 >
                   <div className="rounded-xl p-6" style={{ backgroundColor: '#E3C18B' }}>
                     <div className="text-2xl font-light text-black" style={{ fontFamily: 'var(--font-inria-serif)' }}>Thank you!</div>
-                    <p className="text-black mt-2" style={{ fontFamily: 'var(--font-inria-serif)' }}>We've received your request.</p>
+                    <p className="text-black mt-2" style={{ fontFamily: 'var(--font-inria-serif)' }}>We&apos;ve received your request.</p>
                     <div className="mt-5 text-left space-y-2">
                       <div className="font-medium text-black" style={{ fontFamily: 'var(--font-inria-serif)' }}>Payment Reminder</div>
                       <p className="text-black" style={{ fontFamily: 'var(--font-inria-serif)' }}>
