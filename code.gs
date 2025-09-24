@@ -789,6 +789,7 @@ function doPost(e) {
 
     let fullName = (data.fullName || '').toString().trim();
     const payerEmail = (data.payerEmail || '').toString().trim().toLowerCase();
+    const phone = (data.phone || '').toString().trim(); // Extract phone number from payload
     let numTickets = parseInt(data.numTickets, 10);
     if (isNaN(numTickets) || numTickets < 1) numTickets = 1;
     const attendeeNamesInput = Array.isArray(data.attendeeNames) ? data.attendeeNames.map(String) : [];
@@ -845,7 +846,7 @@ function doPost(e) {
       timestamp,                 // A Timestamp
       fullName,                  // B Full Name
       payerEmail,                // C Payer Email
-      '',                        // D (Phone optional / not used)
+      phone,                     // D Phone Number (now populated from form data)
       numTickets,                // E Num Tickets
       finalAttendeeNames.join(', '), // F Attendee Names
       '',                        // G Screenshot (left empty)
