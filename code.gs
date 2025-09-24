@@ -29,6 +29,15 @@ const COL_STATUS = 9;          // I
 const COL_TICKET_IDS = 10;     // J
 const COL_ADMIN_NOTES = 11;    // K
 const COL_PROCESSED_TS = 12;   // L
+const COL_GROUP_ASSIGNMENT = 13; // M - Bride/Groom group assignment
+
+// --- Group Assignment Configuration ---
+const GROUP_BRIDE = 'Bride';
+const GROUP_GROOM = 'Groom';
+
+// Config sheet cells for group counters (B1=price, B2=admin email, so using B3/B4)
+const CONFIG_BRIDE_COUNT_CELL = 'B3';  // Track total Bride group assignments
+const CONFIG_GROOM_COUNT_CELL = 'B4';  // Track total Groom group assignments
 
 // --- Status Values ---
 const STATUS_PENDING = 'Pending Verification';
@@ -52,10 +61,55 @@ const ZELLE_CHECK_INTERVAL_MINUTES = 5; // How often the time-driven trigger run
 // =============================================================================
 
 /**
+ * Wrapper function to prevent concurrent execution using LockService
+ */
+function withLock_(fn) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try { return fn(); }
+  finally { lock.releaseLock(); }
+}
+
+/**
+ * Assigns a group (Bride or Groom) based on balanced distribution
+ * Updates counters in Config sheet and returns the assigned group
+ */
+function assignGroup_(configSheet) {
+  try {
+    // Get current counts from Config sheet
+    let brideCount = parseInt(configSheet.getRange(CONFIG_BRIDE_COUNT_CELL).getValue()) || 0;
+    let groomCount = parseInt(configSheet.getRange(CONFIG_GROOM_COUNT_CELL).getValue()) || 0;
+    
+    // Assign to the group with fewer members (balanced distribution)
+    let assignedGroup;
+    if (brideCount <= groomCount) {
+      assignedGroup = GROUP_BRIDE;
+      brideCount++;
+      configSheet.getRange(CONFIG_BRIDE_COUNT_CELL).setValue(brideCount);
+    } else {
+      assignedGroup = GROUP_GROOM;
+      groomCount++;
+      configSheet.getRange(CONFIG_GROOM_COUNT_CELL).setValue(groomCount);
+    }
+    
+    Logger.log(`Assigned group: ${assignedGroup}. New counts - Bride: ${brideCount}, Groom: ${groomCount}`);
+    return assignedGroup;
+  } catch (error) {
+    Logger.log(`ERROR in assignGroup_: ${error}`);
+    return GROUP_BRIDE; // Default fallback
+  }
+}
+
+/**
+ * Returns group-specific email subject and message templates
+ */
+
+/**
  * [TRIGGER] Runs when the Google Form is submitted.
  * Populates sheet, calculates amount, sets initial status, sends pending email.
  */
 function onFormSubmit(e) {
+  return withLock_(() => {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = ss.getSheetByName(RESPONSES_SHEET_NAME);
@@ -165,6 +219,7 @@ function onFormSubmit(e) {
         if (adminEmail) { MailApp.sendEmail(adminEmail, 'URGENT: Script Error in onFormSubmit', `Error: ${error}\nStack: ${error.stack}`); }
     } catch (adminNotifyError) { Logger.log(`Failed to send admin error notification: ${adminNotifyError}`); }
    }
+  });
 }
 
 /**
@@ -439,6 +494,17 @@ function generateAndSendTickets(rowNumber) {
 
   try {
     const rowData = sheet.getRange(rowNumber, 1, 1, sheet.getLastColumn()).getValues()[0];
+    
+    // Processed guard: Check if tickets already generated
+    const currentTicketIds = rowData[COL_TICKET_IDS - 1];
+    if (currentTicketIds && currentTicketIds.toString().trim()) {
+      Logger.log(`Row ${rowNumber} already has ticket IDs: ${currentTicketIds}. Skipping.`);
+      return true; // Already processed
+    }
+    
+    // Assign group (Bride/Groom) with balanced distribution - ONLY AFTER payment verification
+    const assignedGroup = assignGroup_(configSheet);
+    
     const payerEmail = rowData[COL_PAYER_EMAIL - 1];
      // <<< Read from COL_FULL_NAME, use fullName variable >>>
     const fullName = rowData[COL_FULL_NAME - 1];
@@ -456,7 +522,7 @@ function generateAndSendTickets(rowNumber) {
     const uniqueTicketIds = [];
     const qrCodeUrls = [];
     // <<< Update Ticket ID Prefix >>>
-    const baseId = `KHALBALI${rowNumber}${Date.now().toString().slice(-5)}`; // Unique base ID
+    const baseId = `SHAADI${rowNumber}${Date.now().toString().slice(-5)}`; // Unique base ID
 
     for (let j = 0; j < numTickets; j++) {
       const ticketId = `${baseId}-${j + 1}`;
@@ -464,16 +530,17 @@ function generateAndSendTickets(rowNumber) {
       qrCodeUrls.push(generateQrCodeUrl(ticketId)); // <<< Calls the function below
     }
 
-    // <<< Pass fullName to sendTicketEmail >>>
-    sendTicketEmail(payerEmail, fullName, attendeeNames, qrCodeUrls, uniqueTicketIds);
+    // <<< Pass fullName and assignedGroup to sendTicketEmail >>>
+    sendTicketEmail(payerEmail, fullName, attendeeNames, qrCodeUrls, uniqueTicketIds, assignedGroup);
 
     // --- Update sheet on SUCCESS ---
     const now = new Date();
     sheet.getRange(rowNumber, COL_TICKET_IDS).setValue(uniqueTicketIds.join(', '));
     sheet.getRange(rowNumber, COL_STATUS).setValue(STATUS_SENT);
     sheet.getRange(rowNumber, COL_PROCESSED_TS).setValue(now);
+    sheet.getRange(rowNumber, COL_GROUP_ASSIGNMENT).setValue(assignedGroup);
     let currentNotes = sheet.getRange(rowNumber, COL_ADMIN_NOTES).getValue() || '';
-    let newNote = `Tickets sent ${now.toLocaleString()}.`;
+    let newNote = `Tickets sent ${now.toLocaleString()}. Assigned to ${assignedGroup} group.`;
     sheet.getRange(rowNumber, COL_ADMIN_NOTES).setValue(`${currentNotes} ${newNote}`.trim());
 
 
@@ -529,46 +596,103 @@ function generateQrCodeUrl(data) {
 // <<< Rename parameter from name to fullName >>>
 function sendPendingEmail(toEmail, fullName, numTickets, expectedAmount) {
   if (!toEmail) { Logger.log("ERROR: Cannot send pending email - 'toEmail' is empty."); return; }
-  // <<< Update Subject Line >>>
-  const subject = '✅ We\'ve Received Your Ticket Request for Khalbali by UW Lumina!';
-  // --- !!! CUSTOMIZE YOUR PAYMENT INSTRUCTIONS HERE !!! ---
-  const paymentInstructions = `
-If you haven't sent the payment yet, please do so via:
-Zelle: 2063836987
+  
+  const subject = '💍 Your Fake Shaadi Ticket Request is In!';
+  
+  const body = `Hi ${fullName},
+
+Thank you for requesting ${numTickets} ticket(s) for Lumina's Big Fake Shaadi! 🎉
+
+Expected payment: $${expectedAmount.toFixed(2)}.
+
+We'll verify your payment and send you another email with your QR code ticket(s). That's your golden invite to the wedding dance floor. 💃🕺
+
+If you haven't sent the payment yet, here's how:
+Zelle: +1 912 (777)-0981
 Amount: $${expectedAmount.toFixed(2)}
 
-IMPORTANT: Please try to include your email (${toEmail}) in the payment memo/note if possible.
+✨ Pro tip: Please include your email (${toEmail}) in the payment memo if possible, so we can match it quickly!
 
+Got questions? Contact us at luminaexperiences@gmail.com or @lumina.wa.
 
-`;
-  // --- End Customize ---
-  // <<< Update Body Text & Use fullName in greeting >>>
-  const body = `Hi ${fullName},\n\nThank you for requesting ${numTickets} ticket(s) for Khalbali! Expected payment: $${expectedAmount.toFixed(2)}.\n\nWe will verify your payment and get back to you shortly. If approved, you'll get another email with your QR code ticket(s).\n\n${paymentInstructions}\nQuestions? Contact luminaexperiences@gmail.com or +1 (629) 217-4809.\n\nCheers,\nUW Lumina`;
+Can't wait to see you at the "wedding" — no vows, no in-laws, just nonstop color, chaos, and dance floor magic. 🥳
+
+Cheers,
+Lumina 💛`;
+
   try { MailApp.sendEmail(toEmail, subject, body); Logger.log(`Pending email sent to ${toEmail}`); }
   catch (error) { Logger.log(`ERROR sending pending email to ${toEmail}: ${error}`); const admin = getAdminEmail(); if(admin) MailApp.sendEmail(admin, 'Error Sending Pending Email', `Failed for ${toEmail}: ${error}`);}
 }
 
 /** Sends final ticket email with QR codes (HTML) using GmailApp */
-// <<< Rename parameter payerName to fullName >>>
-function sendTicketEmail(toEmail, fullName, attendeeNames, qrCodeUrls, uniqueTicketIds) {
-   // <<< Uses GmailApp >>>
+function sendTicketEmail(toEmail, fullName, attendeeNames, qrCodeUrls, uniqueTicketIds, assignedGroup) {
    if (!toEmail) { Logger.log("ERROR: Cannot send ticket email - 'toEmail' is empty."); throw new Error("Missing recipient email."); }
    if (!(attendeeNames.length === qrCodeUrls.length && attendeeNames.length === uniqueTicketIds.length && attendeeNames.length > 0)) {
        Logger.log(`ERROR: Ticket data mismatch for ${toEmail}. Names:${attendeeNames.length}, URLs:${qrCodeUrls.length}, IDs:${uniqueTicketIds.length}.`);
        const admin = getAdminEmail(); if (admin) GmailApp.sendEmail(admin, 'CRITICAL ERROR Sending Tickets', '', { htmlBody: `Data mismatch for ${toEmail}. Email NOT sent.` });
        throw new Error(`Data mismatch prevented sending tickets to ${toEmail}.`);
    }
-   // <<< Update Subject Line >>>
-  const subject = '✅ Your Tickets for Khalbali by UW Lumina are Here!';
-  let htmlBody = `
-<html><head><style> body { font-family: sans-serif; line-height: 1.5; } .ticket { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; page-break-inside: avoid; background-color: #f9f9f9; border-radius: 8px; } .ticket h3 { margin-top: 0; color: #333; } .ticket p { margin-bottom: 10px; } .qr-code { display: block; margin-top: 10px; } hr { border: 0; border-top: 1px solid #eee; margin: 20px 0; } </style></head><body>
-<p>Hi ${fullName},</p><p>Great news! Your payment has been confirmed. ✅ Please find your ${attendeeNames.length} ticket(s) for Khalbali, UW Lumina's Glow in the Dark party below.</p><p><strong>Important:</strong> Each QR code below represents one entry. Please have them ready for scanning at the door on your phone.</p><hr>`;
+   
+   const subject = '🎊 Your Ticket to Lumina\'s Big Fake Shaadi is Confirmed!';
+   
+   // Determine side and dress code based on group
+   const side = assignedGroup === GROUP_BRIDE ? "Bride's Side" : "Groom's Side";
+   const dressCode = assignedGroup === GROUP_BRIDE ? "Warm tones" : "Cool tones";
+   
+   let htmlBody = `
+<html><head><style> 
+body { font-family: sans-serif; line-height: 1.5; } 
+.ticket { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; page-break-inside: avoid; background-color: #f9f9f9; border-radius: 8px; } 
+.ticket h3 { margin-top: 0; color: #333; } 
+.ticket p { margin-bottom: 10px; } 
+.qr-code { display: block; margin-top: 10px; } 
+hr { border: 0; border-top: 1px solid #eee; margin: 20px 0; } 
+</style></head><body>
+
+<p>Hi ${fullName},</p>
+
+<p>Great news — your payment has been confirmed! ✅ Please find your ${attendeeNames.length} ticket(s) for Lumina's Big Fake Shaadi below.</p>
+
+<p><strong>Important:</strong> Each QR code below represents one entry. Please have them ready for scanning at the door on your phone, along with a valid ID (we accept Husky Cards too 🎓).</p>
+
+<p>Got questions? Contact us at luminaexperiences@gmail.com or @lumina.wa.</p>
+
+<hr>`;
+
   for (let i = 0; i < attendeeNames.length; i++) {
-    const attendeeName = attendeeNames[i] || `Guest ${i + 1}`; const ticketId = uniqueTicketIds[i] || 'N/A'; const qrUrl = qrCodeUrls[i];
-    htmlBody += `<div class="ticket"><h3>Ticket for: ${attendeeName}</h3><p>Ticket ID: <strong>${ticketId}</strong></p><p>Scan this QR code at the entrance:</p><img src="${qrUrl}" alt="QR Code for ${attendeeName}" class="qr-code" style="width:180px; height:180px;"></div>`;
+    const attendeeName = attendeeNames[i] || `Guest ${i + 1}`;
+    const ticketId = uniqueTicketIds[i] || 'N/A';
+    const qrUrl = qrCodeUrls[i];
+    
+    htmlBody += `
+<div class="ticket">
+<h3>Ticket for: ${attendeeName}</h3>
+<p>Ticket ID: <strong>${ticketId}</strong></p>
+<p>Side: <strong>${side}</strong></p>
+<p>Dress Code: <strong>${dressCode}</strong> ✨</p>
+<p>Scan this QR code at the entrance:</p>
+<img src="${qrUrl}" alt="QR Code for ${attendeeName}" class="qr-code" style="width:180px; height:180px;">
+</div>`;
   }
-  // <<< Update Event Name in Recap >>>
-  htmlBody += `<hr><p><strong>Event Details Recap:</strong></p><p>Event: Khalbali by UW Lumina<br>Date: May 17th, 2025<br>Time: 11:00 PM onwards<br>Venue: 1218 10th Avenue, Capitol Hill, Seattle, Washington</p><p>See you on the dance floor!</p><p>Cheers,<br>UW Lumina Team</p></body></html>`;
+
+  htmlBody += `
+<hr>
+<p><strong>Event Details Recap:</strong></p>
+<p>💍 Event: Lumina's Big Fake Shaadi<br>
+📅 Date: October 4th, 2025<br>
+🕚 Time: 8:30 PM onwards<br>
+🚪 Doors Close: 9:15 PM<br>
+📍 Venue: Walker Ames Room, Kane Hall, U District<br>
+Don't forget to bring a valid photo ID!</p>
+
+<p>Shaadi mein zaroor aana. 🪩 No vows, no rules — just music, masti, and memories you'll talk about for years.</p>
+
+<p>See you on the "wedding" dance floor!</p>
+
+<p>Cheers,<br>Lumina 💛</p>
+
+</body></html>`;
+
   try {
     GmailApp.sendEmail(toEmail, subject, '', { htmlBody: htmlBody });
     Logger.log(`Ticket email sent to ${toEmail} via GmailApp with ${attendeeNames.length} tickets.`);
@@ -623,8 +747,30 @@ function doGet(e) {
   }
 }
 
+/**
+ * Helper function to find recent duplicate submissions within a time window
+ */
+function findRecentDuplicate_(sheet, payerEmail, expectedAmount, minutes=5) {
+  const now = new Date();
+  const values = sheet.getDataRange().getValues();
+  for (let i = values.length - 1; i >= 1; i--) {
+    const ts = values[i][COL_TIMESTAMP-1];
+    const email = (values[i][COL_PAYER_EMAIL-1] || '').toLowerCase().trim();
+    const amt = parseFloat(values[i][COL_EXPECTED_AMOUNT-1] || 0);
+    const status = values[i][COL_STATUS-1];
+    if (ts instanceof Date && email === payerEmail && Math.abs(amt-expectedAmount) < 0.01) {
+      const ageMin = (now - ts) / 60000;
+      if (ageMin <= minutes && (status === STATUS_PENDING || status === 'UW email entered')) {
+        return i + 1; // row number
+      }
+    }
+  }
+  return null;
+}
+
 /** [WEB APP] Receives JSON submissions from the Next.js site */
 function doPost(e) {
+  return withLock_(() => {
   try {
     // Security: validate API key if configured in Script Properties (name: API_KEY)
     try {
@@ -681,6 +827,18 @@ function doPost(e) {
     }
     const finalAttendeeNames = attendees.slice(0, numTickets);
 
+    // Check for recent duplicates (5-minute window)
+    const dupRow = findRecentDuplicate_(sheet, payerEmail, expectedAmount, 5);
+    if (dupRow) {
+      // Update existing row instead of creating new one
+      sheet.getRange(dupRow, COL_NUM_TICKETS).setValue(numTickets);
+      sheet.getRange(dupRow, COL_ATTENDEE_NAMES).setValue(finalAttendeeNames.join(', '));
+      Logger.log(`Duplicate detected: Updated existing row ${dupRow} for ${payerEmail}`);
+      return ContentService
+        .createTextOutput(JSON.stringify({ ok: true, expectedAmount, dedupedRow: dupRow }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     // Append a new row at the bottom; assume Form default columns A-G, custom H-L
     const timestamp = new Date();
     const newRow = [
@@ -708,6 +866,7 @@ function doPost(e) {
     const message = (err && err.message) ? err.message : String(err);
     return ContentService.createTextOutput(JSON.stringify({ ok: false, error: message })).setMimeType(ContentService.MimeType.JSON);
   }
+  });
 }
 
 /** [WEB APP] Called by the scanner to check in an attendee */
@@ -766,9 +925,7 @@ function setupTriggers() {
    Logger.log(`Deleted ${deletedCount} old trigger(s). Creating new ones...`);
 
   let errorOccurred = false;
-  // Create Form Submit Trigger
-  try { ScriptApp.newTrigger('onFormSubmit').forSpreadsheet(SpreadsheetApp.getActiveSpreadsheet()).onFormSubmit().create(); Logger.log('✅ onFormSubmit trigger created.'); }
-  catch (e) { Logger.log(`❌ ERROR creating onFormSubmit trigger: ${e}`); errorOccurred = true; }
+  // NOTE: onFormSubmit uses simple trigger (function name), no installable trigger needed
 
   // Create Stale Check Trigger
   try {

@@ -214,7 +214,7 @@ export default function BookingForm() {
               Please Zelle the total amount to: 2063836987. Include your Full Name in the memo.
             </p>
             <div className="mt-3 h-28 rounded-lg bg-[var(--secondary)] flex items-center justify-center text-[var(--muted)]">
-              <img src="/paymentqr.png" alt="Zelle QR" width={112} height={112} className="rounded" />
+              <img src="/paymentqrnew.png" alt="Zelle QR" width={112} height={112} className="rounded" />
             </div>
           </div>
         </motion.div>
