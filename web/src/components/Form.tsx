@@ -21,7 +21,7 @@ const fieldClass =
 
 const labelClass = 'text-sm mb-2 text-left' + ' ' + 'text-black';
 
-const TICKET_PRICE = 10; // Price per ticket in dollars
+const TICKET_PRICE = 15; // Price per ticket in dollars
 
 // Decorative Border Component
 const DecorativeBorder = ({ children }: { children: React.ReactNode }) => {
